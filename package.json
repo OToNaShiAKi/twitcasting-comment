@@ -1,6 +1,6 @@
 {
   "name": "twitcasting-comment",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -13,11 +13,10 @@
   },
   "main": "background.js",
   "dependencies": {
-    "@mdi/font": "5.9.55",
+    "@mdi/font": "^7.1.96",
     "axios": "^1.2.5",
     "blueimp-md5": "^2.19.0",
     "core-js": "^3.8.3",
-    "google-translate-api": "^2.3.0",
     "qs": "^6.11.0",
     "roboto-fontface": "*",
     "vue": "^2.6.14",

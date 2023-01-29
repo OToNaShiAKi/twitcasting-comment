@@ -1,7 +1,7 @@
 import axios from "axios";
 import md5 from "blueimp-md5";
 import QS from "qs";
-import { e } from "./baidu";
+import { e, Log } from "./util";
 
 const Response = (response) => response.data;
 
@@ -40,34 +40,39 @@ export const Baidu = axios.create({
 Baidu.interceptors.response.use(Response);
 
 export const GetMovie = async (event, nick, key) => {
-
   const password = md5(key);
-  console.log(nick, key, password)
+  Log(`GetMovie - nick:${nick} key:${key} password:${password}`);
   try {
     const {
       movie: { id },
     } = await Twitcasting.get(`/users/${nick}/latest-movie`, {
       baseURL: "https://frontendapi.twitcasting.tv",
-      params: { pass: password, __n: Date.now() },
+      params: { pass: password },
     });
     const { url } = await Twitcasting.post(
       "eventpubsuburl.php",
       QS.stringify({ movie_id: id, password }),
       { baseURL: "https://en.twitcasting.tv/" }
     );
+    Log(`GetMovieSuccess - id:${id} url:${url}`);
     return url;
   } catch (error) {
-    console.log(error)
+    Log(`GetMovieError - ${JSON.stringify(error)}`);
     return null;
   }
 };
 
-export const TranslateMessage = async (event, query, to = "jp") => {
+export const Translate = async (event, query, to = "jp") => {
   const sign = e(query);
+  Log(`Translate - sign:${sign} query:${query} to:${to}`);
   try {
     const { lan } = await Baidu.post("/langdetect", { query });
     if (lan !== to) {
-      const result = await Baidu.post(
+      const {
+        trans_result: {
+          data: [{ dst }],
+        },
+      } = await Baidu.post(
         "/v2transapi",
         QS.stringify({
           from: lan,
@@ -80,10 +85,12 @@ export const TranslateMessage = async (event, query, to = "jp") => {
           domain: "common",
         })
       );
-      return result.trans_result.data[0].dst;
+      Log(`TranslateSuccess - lan:${lan} dst:${dst}`);
+      return dst;
     }
     return null;
   } catch (error) {
+    Log(`TranslateError - ${JSON.stringify(error)}`);
     return null;
   }
 };

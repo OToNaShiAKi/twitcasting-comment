@@ -5,7 +5,8 @@ import { autoUpdater } from "electron-updater";
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
-import { GetMovie, TranslateMessage } from "./plugins/axios";
+import { GetMovie, Translate } from "./plugins/axios";
+import { Log } from './plugins/util';
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -18,14 +19,14 @@ async function createWindow() {
   const win = new BrowserWindow({
     // Create the browser window.
     width: 450,
-    height,
+    height: height / 2,
     center: true,
     icon: "./public/favicon.png",
     alwaysOnTop: true,
     // frame: false,
-    // titleBarStyle: 'hidden',
+    titleBarStyle: 'hidden',
     // autoHideMenuBar: true,
-    // transparent: true,
+    transparent: true,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -92,4 +93,5 @@ if (isDevelopment) {
 }
 
 ipcMain.handle("GetMovie", GetMovie)
-ipcMain.handle("Translate", TranslateMessage)
+ipcMain.handle("Translate", Translate)
+ipcMain.on("Log", (event, text) => Log(text))
