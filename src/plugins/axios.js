@@ -39,30 +39,70 @@ export const Baidu = axios.create({
 });
 Baidu.interceptors.response.use(Response);
 
-export const GetMovie = async (event, nick, key) => {
-  const password = md5(key);
-  Log(`GetMovie - nick:${nick} key:${key} password:${password}`);
-  try {
-    const {
-      movie: { id },
-    } = await Twitcasting.get(`/users/${nick}/latest-movie`, {
-      baseURL: "https://frontendapi.twitcasting.tv",
-      params: { pass: password },
-    });
-    const { url } = await Twitcasting.post(
-      "eventpubsuburl.php",
-      QS.stringify({ movie_id: id, password }),
-      { baseURL: "https://en.twitcasting.tv/" }
-    );
-    Log(`GetMovieSuccess - id:${id} url:${url}`);
-    return url;
-  } catch (error) {
-    Log(`GetMovieError - ${JSON.stringify(error)}`);
-    return null;
+export const Bilibili = axios.create({
+  baseURL: "https://api.live.bilibili.com/",
+  withCredentials: true,
+  headers: {
+    origin: "https://live.bilibili.com",
+    referer: "https://live.bilibili.com",
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36",
+  },
+});
+
+Bilibili.interceptors.response.use(({ data }) => {
+  if (data.code !== 0 && data.code !== 1200000) {
+    throw data;
   }
+  data.data.message = data.message || data.msg;
+  return data.data;
+});
+
+export const GetMovie = {
+  Bilibili: async (roomid) => {
+    Log(`GetMovie Bilibili - roomid:${roomid}`);
+    try {
+      const { host_list, token } = await Bilibili.get(
+        "/xlive/web-room/v1/index/getDanmuInfo",
+        { params: { type: 0, id: roomid } }
+      );
+      const host = host_list[host_list.length - 1];
+      Log(`GetMovieSuccess - host:${JSON.stringify(host_list)} token:${token}`);
+      return {
+        host: `wss://${host.host}:${host.wss_port}/sub`,
+        token: token,
+        roomid,
+      };
+    } catch (error) {
+      Log(`GetMovieError - ${JSON.stringify(error)}`);
+      return null;
+    }
+  },
+  Twitcasting: async (nick, key) => {
+    const password = md5(key);
+    Log(`GetMovie Twitcasting - nick:${nick} key:${key} password:${password}`);
+    try {
+      const {
+        movie: { id },
+      } = await Twitcasting.get(`/users/${nick}/latest-movie`, {
+        baseURL: "https://frontendapi.twitcasting.tv",
+        params: { pass: password },
+      });
+      const { url } = await Twitcasting.post(
+        "eventpubsuburl.php",
+        QS.stringify({ movie_id: id, password }),
+        { baseURL: "https://en.twitcasting.tv/" }
+      );
+      Log(`GetMovieSuccess - id:${id} url:${url}`);
+      return { host: url };
+    } catch (error) {
+      Log(`GetMovieError - ${JSON.stringify(error)}`);
+      return null;
+    }
+  },
 };
 
-export const Translate = async (event, query, to = "jp") => {
+export const Translate = async (query, to = "jp") => {
   const sign = e(query);
   Log(`Translate - sign:${sign} query:${query} to:${to}`);
   try {

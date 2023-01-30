@@ -29,30 +29,50 @@
     </v-btn>
     <v-dialog v-model="connect" persistent>
       <v-card>
-        <v-card-title>コメント接続</v-card-title>
+        <v-card-title>
+          <v-tabs v-model="tab" centered>
+            <v-tab href="#Twitcasting">Twitcasting</v-tab>
+            <v-tab href="#Bilibili">Bilibili</v-tab>
+          </v-tabs>
+        </v-card-title>
         <v-card-text>
           <v-alert dense text v-show="hint" type="warning">
             {{ hint }}
           </v-alert>
-          <v-text-field
-            hide-details
-            v-model="nick"
-            label="ID"
-            prepend-icon="mdi-at"
-          />
-          <v-text-field
-            hide-details
-            v-model="key"
-            label="Key"
-            prepend-icon="mdi-key-wireless"
-          />
+          <v-tabs-items class="pb-1" v-model="tab">
+            <v-tab-item value="Twitcasting">
+              <v-text-field
+                hide-details
+                v-model="Twitcasting"
+                label="ID"
+                prepend-icon="mdi-at"
+              />
+              <v-text-field
+                hide-details
+                v-model="key"
+                label="Key"
+                prepend-icon="mdi-key-wireless"
+              />
+            </v-tab-item>
+            <v-tab-item value="Bilibili">
+              <v-text-field
+                hide-details
+                v-model="Bilibili"
+                label="LiveID"
+                prepend-icon="mdi-video"
+              />
+            </v-tab-item>
+          </v-tabs-items>
         </v-card-text>
         <v-card-actions>
           <v-btn
             text
             :loading="loading"
             color="primary"
-            :disabled="!(nick && key)"
+            :disabled="
+              (tab === 'Twitcasting' && !(Twitcasting && key)) ||
+              (tab === 'Bilibili' && !Twitcasting)
+            "
             @click="link"
           >
             リンク
@@ -71,42 +91,44 @@ export default {
   name: "App",
   data: () => ({
     comments: [],
-    key: "",
-    nick: "",
+    key: localStorage.getItem("key") || "",
+    Twitcasting: localStorage.getItem("nick") || "",
     loading: false,
     hint: "",
     socket: null,
-    connect: false,
+    connect: true,
+    tab: localStorage.getItem("tab") || "Twitcasting",
+    Bilibili: localStorage.getItem("roomid") || "",
   }),
   created() {
     Socket.GoToBottom = () => {
       const scroll = 76 * (this.comments.length + 1);
       this.$vuetify.goTo(scroll, { easing: "easeInOutCubic" });
     };
-    this.key = localStorage.getItem("key");
-    this.nick = localStorage.getItem("nick");
-    if (this.key && this.nick) {
-      this.link();
-    } else {
-      this.connect = true;
-    }
   },
   methods: {
     async link() {
       this.loading = true;
-      const nick = this.nick.toLowerCase();
       this.socket && this.socket.socket.close();
-      const result = await ipcRenderer.invoke("GetMovie", nick, this.key);
+      const result = await ipcRenderer.invoke(
+        "GetMovie",
+        this.tab,
+        this[this.tab].toLowerCase(),
+        this.key
+      );
       if (result) {
-        this.socket = new Socket(result);
+        this.socket = new Socket(this.tab, result);
         this.comments = this.socket.comments;
         this.hint = "";
         this.connect = false;
       } else {
         this.hint = "接続が失敗になりました";
+        this.connect = true;
       }
       localStorage.setItem("key", this.key);
-      localStorage.setItem("nick", this.nick);
+      localStorage.setItem("nick", this.Twitcasting);
+      localStorage.setItem("roomid", this.Bilibili);
+      localStorage.setItem("tab", this.tab);
       this.loading = false;
     },
     theme() {
