@@ -99,14 +99,25 @@ export const FormatDate = (date = new Date()) => {
   return `${y}-${m}-${d}`;
 };
 
-const file = join(app.getPath("exe"), `../Log/Log-${FormatDate(new Date())}.log`);
+export const FormatTime = (date = new Date()) => {
+  const h = date.getHours().toString().padStart(2, "0");
+  const m = date.getMinutes().toString().padStart(2, "0");
+  const s = date.getSeconds().toString().padStart(2, "0");
+  return `${h}:${m}:${s}`;
+};
+
+const file = join(
+  app.getPath("exe"),
+  `../Log/Log-${FormatDate(new Date())}.log`
+);
+const filepath = join(app.getPath("exe"), "../Log/");
 
 export const Log = async (text) => {
-  const filepath = join(app.getPath("exe"), "../Log/");
+  const time = FormatTime(new Date());
   try {
     await stat(filepath);
   } catch (error) {
     await mkdir(filepath);
   }
-  writeFile(file, text + '\n', { flag: "a+" });
+  await writeFile(file, `${time} - ${text}\n`, { flag: "a+" });
 };

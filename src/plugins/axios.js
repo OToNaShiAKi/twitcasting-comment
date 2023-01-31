@@ -40,7 +40,6 @@ export const Baidu = axios.create({
 Baidu.interceptors.response.use(Response);
 
 export const Bilibili = axios.create({
-  baseURL: "https://api.live.bilibili.com/",
   withCredentials: true,
   headers: {
     origin: "https://live.bilibili.com",
@@ -62,16 +61,33 @@ export const GetMovie = {
   Bilibili: async (roomid) => {
     Log(`GetMovie Bilibili - roomid:${roomid}`);
     try {
-      const { host_list, token } = await Bilibili.get(
-        "/xlive/web-room/v1/index/getDanmuInfo",
-        { params: { type: 0, id: roomid } }
-      );
+      const [{ host_list, token }, { uid }] = await Promise.all([
+        Bilibili.get("/xlive/web-room/v1/index/getDanmuInfo", {
+          params: { type: 0, id: roomid },
+          baseURL: "https://api.live.bilibili.com/",
+        }),
+        Bilibili.get("/xlive/web-room/v2/index/getRoomPlayInfo", {
+          params: {
+            room_id: roomid,
+            protocol: "0,1",
+            format: "0,1,2",
+            codec: "0,1",
+            qn: 0,
+            platform: "web",
+            ptype: 8,
+            dolby: 5,
+            panorama: 1,
+          },
+          baseURL: "https://api.live.bilibili.com/",
+        }),
+      ]);
       const host = host_list[host_list.length - 1];
       Log(`GetMovieSuccess - host:${JSON.stringify(host_list)} token:${token}`);
       return {
         host: `wss://${host.host}:${host.wss_port}/sub`,
-        token: token,
+        token,
         roomid,
+        uid,
       };
     } catch (error) {
       Log(`GetMovieError - ${JSON.stringify(error)}`);
@@ -94,7 +110,7 @@ export const GetMovie = {
         { baseURL: "https://en.twitcasting.tv/" }
       );
       Log(`GetMovieSuccess - id:${id} url:${url}`);
-      return { host: url };
+      return { host: url, uid: nick };
     } catch (error) {
       Log(`GetMovieError - ${JSON.stringify(error)}`);
       return null;
@@ -131,6 +147,18 @@ export const Translate = async (query, to = "jp") => {
     return null;
   } catch (error) {
     Log(`TranslateError - ${JSON.stringify(error)}`);
+    return null;
+  }
+};
+
+export const GetAvatar = async (uid) => {
+  try {
+    const { face } = await Bilibili.get("/x/space/wbi/acc/info", {
+      baseURL: "https://api.bilibili.com/",
+      params: { mid: uid, token: "", platform: "web" },
+    });
+    return face;
+  } catch (error) {
     return null;
   }
 };

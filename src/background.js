@@ -5,7 +5,7 @@ import { autoUpdater } from "electron-updater";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
-import { GetMovie, Translate } from "./plugins/axios";
+import { GetMovie, Translate, GetAvatar } from "./plugins/axios";
 import { Log } from "./plugins/util";
 
 // Scheme must be registered before the app is ready
@@ -92,11 +92,18 @@ if (isDevelopment) {
   }
 }
 
+const Avatars = {};
+
 ipcMain.handle(
   "GetMovie",
   async (event, tab, ...parameter) => await GetMovie[tab](...parameter)
 );
 ipcMain.handle("Translate", async (event, text) =>
-  /【.*】/.test(text) ? "" : await Translate(text)
+  /【.*】/.test(text) || text.length <= 0 ? "" : await Translate(text)
 );
+ipcMain.handle("GetAvatar", async (event, uid) => {
+  const avatar = Avatars[uid] || (await GetAvatar(uid));
+  Avatars[uid] = avatar;
+  return avatar;
+});
 ipcMain.on("Log", (event, text) => Log(text));

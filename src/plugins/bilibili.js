@@ -51,6 +51,7 @@ export const HandleMessage = (blob, resolve) => {
           )
         );
         text.type = /DANMU_MSG/.test(text.cmd) ? "DANMU_MSG" : text.cmd;
+        delete text.cmd
         result.body.push(text);
         offset += PacketLength;
       }
@@ -59,3 +60,14 @@ export const HandleMessage = (blob, resolve) => {
   });
   reader.readAsArrayBuffer(blob);
 };
+
+export const Colors = Object.freeze({
+  UP: '#FF9800',
+  Admin: "#E91E63",
+  Translate: "#F44336"
+})
+
+export const Ships= Object.freeze({
+  "#E17AFF": "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-2.6f68d77..png",
+  "#00D1F1": "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-3.402ac8f..png",
+})

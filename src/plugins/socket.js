@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { Certification, HandleMessage } from "./bilibili";
+import { Certification, Colors, HandleMessage, Ships } from "./bilibili";
 
 export default class Socket {
   static Command = {
@@ -7,30 +7,70 @@ export default class Socket {
       const translate = await ipcRenderer.invoke("Translate", item.message);
       return {
         id: item.id,
-        nickname: item.author.name,
+        title: item.author.name,
         avatar: item.author.profileImage,
         message: item.message,
         translate,
+        style: {},
       };
     },
-    DANMU_MSG: async ({ info }) => {
-      const translate = await ipcRenderer.invoke("Translate", info[1]);
+    DANMU_MSG: async ({ info }, uid) => {
+      const { emots } = JSON.parse(info[0][15].extra);
+      let message = info[1];
+      if (emots) {
+        const regexp = Object.keys(emots)
+          .join("|")
+          .replace(/\[|\]/g, (s) => "\\" + s);
+        message = info[1].replace(new RegExp(regexp, "ig"), (s) => {
+          const { url, width, height } = emots[s];
+          return `<img src="${url}" width="${width}" height="${height}" />`;
+        });
+        info[1] = info[1].replace(new RegExp(regexp, "ig"), " ");
+      } else if (typeof info[0][13] === "object") {
+        const { url, bulge_display } = info[0][13];
+        message = `<img src="${url}" height="${bulge_display ? 40 : 20}" />`;
+        info[1] = "";
+      }
+      const [avatar, translate] = await Promise.all([
+        ipcRenderer.invoke("GetAvatar", info[2][0]),
+        ipcRenderer.invoke("Translate", info[1].trim()),
+      ]);
+      const color =
+        info[2][7] ||
+        (info[2][2] && Colors.Admin) ||
+        (uid == info[2][0] && Colors.UP);
+      if(Ships[info[2][7]]) {
+        info[2][1] += `<img src="${Ships[info[2][7]]}" class="ml-2" width="20" height="20"  />`
+      }
       return {
-        message: info[1],
-        nickname: info[2][1],
-        translate,
         id: info[0][4],
+        message,
+        title: info[2][1],
+        avatar,
+        translate,
+        style: {
+          title: color && { color },
+          message: /【.*】/.test(message) && { color: Colors.Translate },
+        },
       };
     },
-    // SUPER_CHAT_MESSAGE: async ({ data}) => {
-    //   const translate = await ipcRenderer.invoke("Translate", data.message);
-    //   return {
-    //     message: data.message,
-    //     nickname: data.user_info.uname,
-    //     translate,
-    //     // id: Date.now(),
-    //   };
-    // },
+    SUPER_CHAT_MESSAGE_JPN: async ({ data }) => {
+      const translate =
+        data.message_jpn ||
+        (await ipcRenderer.invoke("Translate", data.message));
+      return {
+        id: data.id,
+        message: data.message,
+        title: `<span class="py-1">${data.user_info.uname}</span><span class="ml-6">￥${data.price}</span>`,
+        translate,
+        avatar: data.user_info.face,
+        style: {
+          card: { backgroundColor: "#2A60B2", margin: "6px 0 6px 0" },
+          title: { color: "#EDF5FF" },
+          message: { color: "#EDF5FF" },
+        },
+      };
+    },
   };
   static Parse = {
     Twitcasting: (data) => JSON.parse(data),
@@ -68,6 +108,7 @@ export default class Socket {
     this.socket = new WebSocket(host.host);
     this.socket.timer = null;
     this.type = type;
+    this.uid = host.uid;
     this.socket.addEventListener("open", (event) => {
       Socket.Connect[type] && Socket.Connect[type](this.socket, host);
       Socket.ConnectLog(event, type);
@@ -92,14 +133,15 @@ export default class Socket {
   static Log = (text) => ipcRenderer.send("Log", text);
   Message = async ({ data }) => {
     const messages = await Socket.Parse[this.type](data);
+    Socket.Log(`SocketMessage - ${JSON.stringify(messages)}`);
     for (const item of messages) {
       const comment =
-        Socket.Command[item.type] && (await Socket.Command[item.type](item));
+        Socket.Command[item.type] &&
+        (await Socket.Command[item.type](item, this.uid));
       if (comment) {
         this.comments.push(comment);
         Socket.GoToBottom();
       }
     }
-    Socket.Log(`SocketMessage - ${JSON.stringify(messages)}`);
   };
 }

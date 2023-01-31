@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Vuetify from "vuetify/lib/framework";
-import zhHans from "vuetify/lib/locale/zh-Hans";
+import ja from "vuetify/lib/locale/ja";
 
 Vue.use(Vuetify);
 
@@ -9,8 +9,8 @@ const theme = '#fa7298';
 
 export default new Vuetify({
   lang: {
-    locales: { zhHans },
-    current: "zhHans",
+    locales: { ja },
+    current: "ja",
   },
   theme: {
     dark,

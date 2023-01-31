@@ -7,15 +7,30 @@
     />
     <v-main>
       <v-list id="comment" dense three-line>
-        <v-fab-transition group>
-          <v-list-item dense three-line v-for="item of comments" :key="item.id">
+        <v-fab-transition group origin="center left">
+          <v-list-item
+            class="rounded-lg"
+            :style="item.style.card"
+            v-for="item of comments"
+            :key="item.id"
+          >
             <v-list-item-avatar>
-              <v-img :src="item.avatar" />
+              <v-img referrepolicy="no-referrer" :src="item.avatar" />
             </v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title>{{ item.nickname }}</v-list-item-title>
-              <v-list-item-subtitle>{{ item.message }}</v-list-item-subtitle>
-              <v-list-item-subtitle>{{ item.translate }}</v-list-item-subtitle>
+              <v-list-item-title
+                class="d-flex align-center font-weight-bold"
+                :style="item.style.title"
+                v-html="item.title"
+              />
+              <v-list-item-subtitle
+                class="d-flex align-center"
+                :style="item.style.message"
+                v-html="item.message"
+              />
+              <v-list-item-subtitle :style="item.style.message">
+                {{ item.translate }}
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-fab-transition>
@@ -102,7 +117,7 @@ export default {
   }),
   created() {
     Socket.GoToBottom = () => {
-      const scroll = 76 * (this.comments.length + 1);
+      const scroll = document.getElementById("comment").scrollHeight;
       this.$vuetify.goTo(scroll, { easing: "easeInOutCubic" });
     };
   },
