@@ -99,7 +99,7 @@ ipcMain.handle(
   async (event, tab, ...parameter) => await GetMovie[tab](...parameter)
 );
 ipcMain.handle("Translate", async (event, text) =>
-  /【.*】/.test(text) || text.length <= 0 ? "" : await Translate(text)
+  /【|】|(^\d*$)/.test(text) || text.length <= 0 ? "" : await Translate(text)
 );
 ipcMain.handle("GetAvatar", async (event, uid) => {
   const avatar = Avatars[uid] || (await GetAvatar(uid));

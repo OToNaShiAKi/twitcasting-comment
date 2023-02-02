@@ -51,7 +51,7 @@ export const HandleMessage = (blob, resolve) => {
           )
         );
         text.type = /DANMU_MSG/.test(text.cmd) ? "DANMU_MSG" : text.cmd;
-        delete text.cmd
+        delete text.cmd;
         result.body.push(text);
         offset += PacketLength;
       }
@@ -62,12 +62,18 @@ export const HandleMessage = (blob, resolve) => {
 };
 
 export const Colors = Object.freeze({
-  UP: '#FF9800',
+  UP: "#FF9800",
   Admin: "#E91E63",
-  Translate: "#F44336"
-})
+  Translate: "#F44336",
+  Ship: {
+    1: {  message: "#B72E2E", background: "#FEBBAD" },
+    2: {  message: "#6F3EC0", background: "#D2BCFB" },
+    3: {  message: "#4153AD", background: "#A9CFFD" },
+  },
+});
 
-export const Ships= Object.freeze({
-  "#E17AFF": "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-2.6f68d77..png",
-  "#00D1F1": "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-3.402ac8f..png",
-})
+export const Ships = Object.freeze({
+  1: "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-1.fde1190..png",
+  2: "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-2.6f68d77..png",
+  3: "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-3.402ac8f..png",
+});

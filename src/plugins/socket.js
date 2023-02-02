@@ -1,5 +1,6 @@
 import { ipcRenderer } from "electron";
 import { Certification, Colors, HandleMessage, Ships } from "./bilibili";
+import GoTo from "vuetify/lib/services/goto";
 
 export default class Socket {
   static Command = {
@@ -14,7 +15,7 @@ export default class Socket {
         style: {},
       };
     },
-    DANMU_MSG: async ({ info }, uid) => {
+    DANMU_MSG: async ({ info, type }, uid) => {
       const { emots } = JSON.parse(info[0][15].extra);
       let message = info[1];
       if (emots) {
@@ -36,38 +37,66 @@ export default class Socket {
         ipcRenderer.invoke("Translate", info[1].trim()),
       ]);
       const color =
-        info[2][7] ||
         (info[2][2] && Colors.Admin) ||
+        info[2][7] ||
         (uid == info[2][0] && Colors.UP);
-      if(Ships[info[2][7]]) {
-        info[2][1] += `<img src="${Ships[info[2][7]]}" class="ml-2" width="20" height="20"  />`
+      const url = Ships[info[7]];
+      if (url) {
+        info[2][1] += `<img src="${url}" class="ml-2" width="20" height="20" />`;
       }
       return {
-        id: info[0][4],
+        id: type + "-" + info[0][4],
         message,
         title: info[2][1],
         avatar,
         translate,
         style: {
           title: color && { color },
-          message: /【.*】/.test(message) && { color: Colors.Translate },
+          message: /【|】/.test(message) && { color: Colors.Translate },
         },
       };
     },
-    SUPER_CHAT_MESSAGE_JPN: async ({ data }) => {
+    SUPER_CHAT_MESSAGE_JPN: async ({ data, type }) => {
       const translate =
         data.message_jpn ||
         (await ipcRenderer.invoke("Translate", data.message));
+      let title = `<span class="py-1">${data.user_info.uname}</span>`;
+      const url = Ships[data.user_info.guard_level];
+      if (url) {
+        title += `<img src="${url}" class="ml-2" width="20" height="20" />`;
+      }
+      title += `<span class="ml-6" style="background-color: ${data.background_price_color};">SuperChat - ￥${data.price}</span>`;
       return {
-        id: data.id,
+        id: type + "-" + data.id,
         message: data.message,
-        title: `<span class="py-1">${data.user_info.uname}</span><span class="ml-6">￥${data.price}</span>`,
+        title,
         translate,
         avatar: data.user_info.face,
         style: {
-          card: { backgroundColor: "#2A60B2", margin: "6px 0 6px 0" },
-          title: { color: "#EDF5FF" },
-          message: { color: "#EDF5FF" },
+          card: {
+            backgroundColor: data.background_bottom_color,
+            margin: "6px 0 6px 0",
+          },
+          title: { color: data.background_color },
+          message: { color: data.background_color },
+        },
+      };
+    },
+    GUARD_BUY: async ({ data, type }) => {
+      const avatar = await ipcRenderer.invoke("GetAvatar", data.uid);
+      const colors = Colors.Ship[data.guard_level];
+      const url = Ships[data.guard_level];
+      const price = (data.price / 1000).toFixed(0);
+      return {
+        id: type + "-" + Date.now(),
+        avatar,
+        title: data.username,
+        translate: "New Member",
+        message: `${data.gift_name} - <img src="${url}" class="ml-2" width="20" height="20" /><span>×${data.num}</span><span class="ml-6">￥${price}</span>`,
+        style: {
+          card: { backgroundColor: colors.background, margin: "6px 0 6px 0" },
+          message: { color: colors.message },
+          title: { color: colors.message },
         },
       };
     },
@@ -119,6 +148,10 @@ export default class Socket {
       Socket.ConnectLog(event, type);
     });
   }
+  static GoToBottom = () => {
+    const target = document.getElementById("comment");
+    GoTo(target.scrollHeight, { easing: "easeInOutCubic" });
+  };
   static ConnectLog = (event, platform) => {
     const text = JSON.stringify({
       trusted: event.isTrusted,

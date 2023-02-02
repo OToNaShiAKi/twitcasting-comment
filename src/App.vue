@@ -115,12 +115,6 @@ export default {
     tab: localStorage.getItem("tab") || "Twitcasting",
     Bilibili: localStorage.getItem("roomid") || "",
   }),
-  created() {
-    Socket.GoToBottom = () => {
-      const scroll = document.getElementById("comment").scrollHeight;
-      this.$vuetify.goTo(scroll, { easing: "easeInOutCubic" });
-    };
-  },
   methods: {
     async link() {
       this.loading = true;
