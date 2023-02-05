@@ -5,7 +5,7 @@ import GoTo from "vuetify/lib/services/goto";
 export default class Socket {
   static Command = {
     comment: async (item) => {
-      const translate = await ipcRenderer.invoke("Translate", item.message);
+      const translate = await ipcRenderer.invoke("Translate", item.message, Socket.language);
       return {
         id: item.id,
         title: item.author.name,
@@ -38,7 +38,7 @@ export default class Socket {
       }
       const [avatar, translate] = await Promise.all([
         ipcRenderer.invoke("GetAvatar", info[2][0]),
-        ipcRenderer.invoke("Translate", info[1].trim()),
+        ipcRenderer.invoke("Translate", info[1].trim(), Socket.language),
       ]);
       const color =
         (info[2][2] && Colors.Admin) ||
@@ -64,7 +64,7 @@ export default class Socket {
     SUPER_CHAT_MESSAGE_JPN: async ({ data, type }) => {
       const translate =
         data.message_jpn ||
-        (await ipcRenderer.invoke("Translate", data.message));
+        (await ipcRenderer.invoke("Translate", data.message, Socket.language));
       let title = `<span class="py-1">${data.user_info.uname}</span>`;
       const url = Ships[data.user_info.guard_level];
       if (url) {
@@ -139,6 +139,7 @@ export default class Socket {
       }, 30000);
     },
   };
+  static language = undefined;
   constructor(type, host) {
     this.comments = [];
     this.socket = new WebSocket(host.host);

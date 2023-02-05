@@ -192,7 +192,13 @@
 <script>
 import { ipcRenderer } from "electron";
 import Socket from "./plugins/socket";
-// 1gyfuy
+const Map = Object.freeze({
+  ja: jp,
+  zhHans: "zh",
+  en: "en",
+  ko: "kor",
+});
+
 export default {
   name: "App",
   data: () => ({
@@ -214,6 +220,7 @@ export default {
     const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
     localStorage.setItem("Cookie", result.Cookie);
     localStorage.setItem("token", result.token);
+    Socket.language = Map[this.$vuetify.lang.current];
   },
   methods: {
     async Link() {
@@ -246,6 +253,7 @@ export default {
     },
     ChangeLanguage(value) {
       this.$vuetify.lang.current = value;
+      Socket.language = Map[value];
       localStorage.setItem("language", value);
     },
     ChangeTheme(value) {
