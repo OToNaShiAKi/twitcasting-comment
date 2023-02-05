@@ -13,6 +13,7 @@
             :style="item.style.card"
             v-for="item of comments"
             :key="item.id"
+            v-show="config.includes(item.config)"
           >
             <v-list-item-avatar>
               <v-img referrepolicy="no-referrer" :src="item.avatar" />
@@ -39,8 +40,8 @@
     <v-btn class="drag" fab fixed top right x-small color="primary">
       <v-icon>mdi-cursor-move</v-icon>
     </v-btn>
-    <v-btn @click="theme" fab fixed bottom right x-small>
-      <v-icon color="primary">mdi-theme-light-dark</v-icon>
+    <v-btn @click="setting = !setting" fab fixed bottom right x-small>
+      <v-icon color="primary">mdi-cogs</v-icon>
     </v-btn>
     <v-dialog v-model="connect" persistent>
       <v-card>
@@ -88,11 +89,101 @@
               (tab === 'Twitcasting' && !(Twitcasting && key)) ||
               (tab === 'Bilibili' && !Twitcasting)
             "
-            @click="link"
+            @click="Link"
           >
-            リンク
+            {{ $vuetify.lang.t("$vuetify.link") }}
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="setting">
+      <v-card>
+        <v-subheader>
+          {{ $vuetify.lang.t("$vuetify.languages.resouces") }}
+        </v-subheader>
+        <v-radio-group
+          row
+          class="ma-0 px-3"
+          :value="$vuetify.lang.current"
+          @change="ChangeLanguage"
+        >
+          <v-radio
+            value="zhHans"
+            :label="$vuetify.lang.t('$vuetify.languages.chinese')"
+          />
+          <v-radio
+            value="ja"
+            :label="$vuetify.lang.t('$vuetify.languages.japanses')"
+          />
+          <v-radio
+            value="ko"
+            :label="$vuetify.lang.t('$vuetify.languages.korean')"
+          />
+          <v-radio
+            value="en"
+            :label="$vuetify.lang.t('$vuetify.languages.english')"
+          />
+        </v-radio-group>
+        <v-subheader class="d-flex justify-space-between align-center">
+          {{ $vuetify.lang.t("$vuetify.theme") }}
+          <v-btn @click="ChangeMode" icon x-small>
+            <v-icon color="primary">mdi-theme-light-dark</v-icon>
+          </v-btn>
+        </v-subheader>
+        <v-radio-group
+          row
+          class="ma-0 px-3"
+          :value="$vuetify.theme.themes.light.primary"
+          @change="ChangeTheme"
+        >
+          <v-radio label="少女粉" value="#fa7298" />
+          <v-radio label="宝石蓝" value="#2196f3" />
+          <v-radio label="咖啡褐" value="#5c2e2e" />
+          <v-radio label="咸蛋黄" value="#fd8a2f" />
+          <v-radio label="夕阳红" value="#ff5252" />
+          <v-radio label="早苗绿" value="#8bc24a" />
+          <v-radio label="罗兰紫" value="#9c28b1" />
+        </v-radio-group>
+        <v-subheader>
+          {{ $vuetify.lang.t("$vuetify.config.content") }}
+        </v-subheader>
+        <section class="px-3 pb-6 d-flex flex-wrap justify-space-between">
+          <v-checkbox
+            class="ma-0"
+            value="comment"
+            v-model="config"
+            hide-details
+            :label="$vuetify.lang.t('$vuetify.config.comment')"
+          />
+          <v-checkbox
+            class="ma-0"
+            value="gift"
+            v-model="config"
+            hide-details
+            :label="$vuetify.lang.t('$vuetify.config.gift')"
+          />
+          <v-checkbox
+            class="ma-0"
+            value="member"
+            v-model="config"
+            hide-details
+            :label="$vuetify.lang.t('$vuetify.config.member')"
+          />
+          <v-checkbox
+            class="ma-0"
+            value="superchat"
+            v-model="config"
+            hide-details
+            :label="$vuetify.lang.t('$vuetify.config.superchat')"
+          />
+          <v-checkbox
+            class="ma-0"
+            value="stamp"
+            v-model="config"
+            hide-details
+            :label="$vuetify.lang.t('$vuetify.config.stamp')"
+          />
+        </section>
       </v-card>
     </v-dialog>
   </v-app>
@@ -114,9 +205,18 @@ export default {
     connect: true,
     tab: localStorage.getItem("tab") || "Twitcasting",
     Bilibili: localStorage.getItem("roomid") || "",
+    setting: false,
+    config: ["comment", "gift", "member", "superchat", "stamp"],
   }),
+  async beforeCreate() {
+    const Cookie = localStorage.getItem("Cookie");
+    const token = localStorage.getItem("token");
+    const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
+    localStorage.setItem("Cookie", result.Cookie);
+    localStorage.setItem("token", result.token);
+  },
   methods: {
-    async link() {
+    async Link() {
       this.loading = true;
       this.socket && this.socket.socket.close();
       const result = await ipcRenderer.invoke(
@@ -131,7 +231,7 @@ export default {
         this.hint = "";
         this.connect = false;
       } else {
-        this.hint = "接続が失敗になりました";
+        this.hint = this.$vuetify.lang.t("$vuetify.hint");
         this.connect = true;
       }
       localStorage.setItem("key", this.key);
@@ -140,9 +240,18 @@ export default {
       localStorage.setItem("tab", this.tab);
       this.loading = false;
     },
-    theme() {
+    ChangeMode() {
       this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
       localStorage.setItem("dark", this.$vuetify.theme.dark ? 1 : 0);
+    },
+    ChangeLanguage(value) {
+      this.$vuetify.lang.current = value;
+      localStorage.setItem("language", value);
+    },
+    ChangeTheme(value) {
+      this.$vuetify.theme.themes.light.primary = value;
+      this.$vuetify.theme.themes.dark.primary = value;
+      localStorage.setItem("theme", value);
     },
   },
 };

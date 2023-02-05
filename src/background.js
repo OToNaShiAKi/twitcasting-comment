@@ -5,7 +5,13 @@ import { autoUpdater } from "electron-updater";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
-import { GetMovie, Translate, GetAvatar } from "./plugins/axios";
+import {
+  GetMovie,
+  Translate,
+  GetAvatar,
+  GetAuthen,
+  Baidu,
+} from "./plugins/axios";
 import { Log } from "./plugins/util";
 
 // Scheme must be registered before the app is ready
@@ -107,3 +113,13 @@ ipcMain.handle("GetAvatar", async (event, uid) => {
   return avatar;
 });
 ipcMain.on("Log", (event, text) => Log(text));
+ipcMain.handle("GetAuthen", async (event, Cookie, token) => {
+  if (!Cookie || !token) {
+    const result = await GetAuthen();
+    Cookie = result.Cookie;
+    token = result.token;
+  }
+  Baidu.defaults.headers.Cookie = Cookie;
+  Translate.token = token;
+  return { Cookie, token };
+});

@@ -13,11 +13,14 @@ export default class Socket {
         message: item.message,
         translate,
         style: {},
+        config: "comment",
       };
     },
     DANMU_MSG: async ({ info, type }, uid) => {
+      if (info[0][12]) return;
       const { emots } = JSON.parse(info[0][15].extra);
       let message = info[1];
+      let config = "comment";
       if (emots) {
         const regexp = Object.keys(emots)
           .join("|")
@@ -27,10 +30,11 @@ export default class Socket {
           return `<img src="${url}" width="${width}" height="${height}" />`;
         });
         info[1] = info[1].replace(new RegExp(regexp, "ig"), " ");
-      } else if (typeof info[0][13] === "object") {
+      } else if (info[0][12] === 1) {
         const { url, bulge_display } = info[0][13];
         message = `<img src="${url}" height="${bulge_display ? 40 : 20}" />`;
         info[1] = "";
+        config = "stamp";
       }
       const [avatar, translate] = await Promise.all([
         ipcRenderer.invoke("GetAvatar", info[2][0]),
@@ -54,6 +58,7 @@ export default class Socket {
           title: color && { color },
           message: /【|】/.test(message) && { color: Colors.Translate },
         },
+        config,
       };
     },
     SUPER_CHAT_MESSAGE_JPN: async ({ data, type }) => {
@@ -80,6 +85,7 @@ export default class Socket {
           title: { color: data.background_color },
           message: { color: data.background_color },
         },
+        config: "superchat",
       };
     },
     GUARD_BUY: async ({ data, type }) => {
@@ -98,6 +104,7 @@ export default class Socket {
           message: { color: colors.message },
           title: { color: colors.message },
         },
+        config: "gift",
       };
     },
   };
