@@ -15,6 +15,7 @@ const locales = Object.freeze({
     },
     hint: "连接失败",
     theme: "主题色",
+    version: "版本",
     config: {
       content: "内容",
       comment: "弹幕",
@@ -36,6 +37,7 @@ const locales = Object.freeze({
     },
     hint: "接続が失敗になりました",
     theme: "色彩",
+    version: "バージョン",
     config: {
       content: "内容",
       comment: "弾幕",
@@ -57,6 +59,7 @@ const locales = Object.freeze({
     },
     hint: "연결 오류",
     theme: "색상",
+    version: "버전",
     config: {
       content: "내용",
       comment: "코멘트",
@@ -78,6 +81,7 @@ const locales = Object.freeze({
     },
     hint: "Link Error",
     theme: "Theme",
+    version: "Version",
     config: {
       content: "Content",
       comment: "Comment",

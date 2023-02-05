@@ -147,7 +147,7 @@
         <v-subheader>
           {{ $vuetify.lang.t("$vuetify.config.content") }}
         </v-subheader>
-        <section class="px-3 pb-6 d-flex flex-wrap justify-space-between">
+        <section class="px-3 pb-3 d-flex flex-wrap justify-space-between">
           <v-checkbox
             class="ma-0"
             value="comment"
@@ -159,6 +159,7 @@
             class="ma-0"
             value="gift"
             v-model="config"
+            disabled
             hide-details
             :label="$vuetify.lang.t('$vuetify.config.gift')"
           />
@@ -184,6 +185,9 @@
             :label="$vuetify.lang.t('$vuetify.config.stamp')"
           />
         </section>
+        <p class="caption">
+          {{ $vuetify.lang.t("$vuetify.config.version") }}: {{ version }}
+        </p>
       </v-card>
     </v-dialog>
   </v-app>
@@ -192,6 +196,8 @@
 <script>
 import { ipcRenderer } from "electron";
 import Socket from "./plugins/socket";
+import { version } from "../package.json";
+
 const Map = Object.freeze({
   ja: jp,
   zhHans: "zh",
@@ -212,7 +218,8 @@ export default {
     tab: localStorage.getItem("tab") || "Twitcasting",
     Bilibili: localStorage.getItem("roomid") || "",
     setting: false,
-    config: ["comment", "gift", "member", "superchat", "stamp"],
+    config: ["comment", "member", "superchat", "stamp"],
+    version,
   }),
   async beforeCreate() {
     const Cookie = localStorage.getItem("Cookie");
