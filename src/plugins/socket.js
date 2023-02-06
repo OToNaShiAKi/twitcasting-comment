@@ -169,12 +169,12 @@ export default class Socket {
       reason: event.reason,
       platform,
     });
-    Socket.Log(`SocketConnect - ${text}`);
+    Socket.Log(`Socket Connect - ${text}`);
   };
   static Log = (text) => ipcRenderer.send("Log", text);
   Message = async ({ data }) => {
     const messages = await Socket.Parse[this.type](data);
-    Socket.Log(`SocketMessage - ${JSON.stringify(messages)}`);
+    Socket.Log(`Socket Message - ${JSON.stringify(messages)}`);
     for (const item of messages) {
       const comment =
         Socket.Command[item.type] &&

@@ -29,7 +29,7 @@ export const GetMovie = {
         }),
       ]);
       const host = host_list[host_list.length - 1];
-      Log(`GetMovieSuccess - host:${JSON.stringify(host_list)} token:${token}`);
+      Log(`GetMovie Success - host:${JSON.stringify(host_list)} token:${token}`);
       return {
         host: `wss://${host.host}:${host.wss_port}/sub`,
         token,
@@ -37,7 +37,7 @@ export const GetMovie = {
         uid,
       };
     } catch (error) {
-      Log(`GetMovieError - ${JSON.stringify(error)}`);
+      Log(`GetMovie Error - ${JSON.stringify(error)}`);
       return null;
     }
   },
@@ -56,25 +56,29 @@ export const GetMovie = {
         QS.stringify({ movie_id: id, password }),
         { baseURL: "https://en.twitcasting.tv/" }
       );
-      Log(`GetMovieSuccess - id:${id} url:${url}`);
+      Log(`GetMovie Success - id:${id} url:${url}`);
       return { host: url, uid: nick };
     } catch (error) {
-      Log(`GetMovieError - ${JSON.stringify(error)}`);
+      Log(`GetMovie Error - ${JSON.stringify(error)}`);
       return null;
     }
   },
 };
 
 export const Judgment = async (query, to) => {
+  Log(`Judgment - query:${query}`);
   try {
-    const { lan } = await Baidu.post("/langdetect", { query });
+    let { lan } = await Baidu.post("/langdetect", { query });
     for (const key in LanguageMap.Baidu) {
       if (lan === LanguageMap.Baidu[key]) {
-        return key;
+        lan = key;
+        break;
       }
     }
+    Log(`Judgment Success - lan:${lan}`);
     return lan;
-  } catch {
+  } catch(error) {
+    Log(`Judgment Error - ${JSON.stringify(error)}`);
     return to;
   }
 };
@@ -84,7 +88,7 @@ export const Translate = [
     from = LanguageMap.Youdao[from] || from;
     to = LanguageMap.Youdao[to] || to;
     const token = y(query, Youdao.defaults.headers["User-Agent"]);
-    Log(`Translate - sign:${JSON.stringify(token)} query:${query}`);
+    Log(`Translate Youdao - sign:${JSON.stringify(token)} query:${query}`);
     try {
       const {
         translateResult: [[{ tgt }]],
@@ -103,13 +107,13 @@ export const Translate = [
           action: "FY_BY_REALTlME",
         })
       );
-      Log(`TranslateSuccess - tgt:${tgt}`);
+      Log(`Translate Success - tgt:${tgt}`);
       return tgt;
     } catch (error) {
-      Log(`TranslateError - ${JSON.stringify(error)}`);
+      Log(`Translate Error - ${JSON.stringify(error)}`);
       return null;
     }
-  },
+  }
 ];
 Translate.times = 0;
 
@@ -120,10 +124,10 @@ export const GetAvatar = async (uid) => {
       baseURL: "https://api.bilibili.com/",
       params: { mid: uid, token: "", platform: "web" },
     });
-    Log(`GetAvatarSuccess - face:${face}`);
+    Log(`GetAvatar Success - face:${face}`);
     return face;
   } catch (error) {
-    Log(`GetAvatarError - ${JSON.stringify(error)}`);
+    Log(`GetAvatar Error - ${JSON.stringify(error)}`);
     return null;
   }
 };
@@ -145,9 +149,9 @@ export const GetAuthen = async () => {
         .join(";");
     }
     const match = result.data.match(/token: ?'(.*)'/);
-    Log(`GetAuthenSuccess - Cookie:${Cookie} token:${match[1]}`);
+    Log(`GetAuthen Success - Cookie:${Cookie} token:${match[1]}`);
     return { Cookie, token: match[1] };
   } catch (error) {
-    Log(`GetAuthenError - ${JSON.stringify(error)}`);
+    Log(`GetAuthen Error - ${JSON.stringify(error)}`);
   }
 };

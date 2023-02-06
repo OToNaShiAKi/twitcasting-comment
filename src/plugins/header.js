@@ -80,7 +80,7 @@ Youdao.interceptors.response.use(({ data }) => {
   return data;
 });
 
-export const LanguageMap = {
+export const LanguageMap = Object.freeze({
   Baidu: { ja: "jp", zhHans: "zh", en: "en", ko: "kor" },
   Youdao: { ja: "ja", zhHans: "zh-CHS", en: "en", ko: "ko" },
-};
+});
