@@ -1,59 +1,8 @@
 import axios from "axios";
 import md5 from "blueimp-md5";
 import QS from "qs";
-import { e, Log } from "./util";
-
-const Twitcasting = axios.create({
-  withCredentials: true,
-  headers: {
-    Origin: "https://en.twitcasting.tv",
-    Referer: "https://en.twitcasting.tv/",
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-  },
-});
-Twitcasting.interceptors.response.use((response) => response.data);
-
-export const Baidu = axios.create({
-  baseURL: "https://fanyi.baidu.com/",
-  withCredentials: true,
-  headers: {
-    origin: "https://fanyi.baidu.com/",
-    referer: "https://fanyi.baidu.com/",
-    "sec-ch-ua":
-      '"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"',
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": "Windows",
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "same-origin",
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-  },
-});
-Baidu.interceptors.response.use(({ data }) => {
-  if (data.error && data.error !== 0) {
-    throw data;
-  }
-  return data;
-});
-
-const Bilibili = axios.create({
-  withCredentials: true,
-  headers: {
-    Origin: "https://live.bilibili.com",
-    Referer: "https://live.bilibili.com",
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36",
-  },
-});
-Bilibili.interceptors.response.use(({ data }) => {
-  if (data.code !== 0 && data.code !== 1200000) {
-    throw data;
-  }
-  data.data.message = data.message || data.msg;
-  return data.data;
-});
+import { e, Log, y } from "./util";
+import { Bilibili, Twitcasting, Baidu, LanguageMap, Youdao } from "./header";
 
 export const GetMovie = {
   Bilibili: async (roomid) => {
@@ -116,38 +65,53 @@ export const GetMovie = {
   },
 };
 
-export const Translate = async (query, to = "jp") => {
+export const Judgment = async (query, to) => {
   try {
     const { lan } = await Baidu.post("/langdetect", { query });
-    if (lan !== to) {
-      const sign = e(query);
-      Log(`Translate - sign:${sign} query:${query} to:${to}`);
-      const {
-        trans_result: {
-          data: [{ dst }],
-        },
-      } = await Baidu.post(
-        "/v2transapi",
-        QS.stringify({
-          from: lan,
-          to,
-          query,
-          transtype: "realtime",
-          simple_means_flag: 3,
-          sign,
-          token: Translate.token,
-          domain: "common",
-        })
-      );
-      Log(`TranslateSuccess - lan:${lan} dst:${dst}`);
-      return dst;
+    for (const key in LanguageMap.Baidu) {
+      if (lan === LanguageMap.Baidu[key]) {
+        return key;
+      }
     }
-    return null;
-  } catch (error) {
-    Log(`TranslateError - ${JSON.stringify(error)}`);
-    return null;
+    return lan;
+  } catch {
+    return to;
   }
 };
+
+export const Translate = [
+  async (query, from = "zhHans", to = "ja") => {
+    from = LanguageMap.Youdao[from] || from;
+    to = LanguageMap.Youdao[to] || to;
+    const token = y(query, Youdao.defaults.headers["User-Agent"]);
+    Log(`Translate - sign:${JSON.stringify(token)} query:${query}`);
+    try {
+      const {
+        translateResult: [[{ tgt }]],
+      } = await Youdao.post(
+        "/translate_o",
+        QS.stringify({
+          i: query,
+          from,
+          to,
+          smartresult: "dict",
+          client: "fanyideskweb",
+          ...token,
+          doctype: "json",
+          version: "2.1",
+          keyfrom: "fanyi.web",
+          action: "FY_BY_REALTlME",
+        })
+      );
+      Log(`TranslateSuccess - tgt:${tgt}`);
+      return tgt;
+    } catch (error) {
+      Log(`TranslateError - ${JSON.stringify(error)}`);
+      return null;
+    }
+  },
+];
+Translate.times = 0;
 
 export const GetAvatar = async (uid) => {
   Log(`GetAvatar - uid:${uid}`);
@@ -169,13 +133,13 @@ export const GetAuthen = async () => {
     const { headers } = await axios.get("https://fanyi.baidu.com");
     let Cookie = headers["set-cookie"]
       .map((item) => item.split(";")[0])
-      .join(";");
+      .join("; ");
     const result = await axios.get("https://fanyi.baidu.com", {
       headers: { ...Baidu.defaults.headers, Cookie },
       withCredentials: true,
     });
     if (result.headers["set-cookie"]) {
-      Cookie += ";";
+      Cookie += "; ";
       Cookie += result.headers["set-cookie"]
         .map((item) => item.split(";")[0])
         .join(";");

@@ -185,9 +185,9 @@
             :label="$vuetify.lang.t('$vuetify.config.stamp')"
           />
         </section>
-        <p class="caption">
-          {{ $vuetify.lang.t("$vuetify.config.version") }}: {{ version }}
-        </p>
+        <v-subheader class="caption">
+          {{ $vuetify.lang.t("$vuetify.version") }}: {{ version }}
+        </v-subheader>
       </v-card>
     </v-dialog>
   </v-app>
@@ -197,13 +197,6 @@
 import { ipcRenderer } from "electron";
 import Socket from "./plugins/socket";
 import { version } from "../package.json";
-
-const Map = Object.freeze({
-  ja: jp,
-  zhHans: "zh",
-  en: "en",
-  ko: "kor",
-});
 
 export default {
   name: "App",
@@ -227,7 +220,7 @@ export default {
     const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
     localStorage.setItem("Cookie", result.Cookie);
     localStorage.setItem("token", result.token);
-    Socket.language = Map[this.$vuetify.lang.current];
+    Socket.language = this.$vuetify.lang.current;
   },
   methods: {
     async Link() {
@@ -260,7 +253,7 @@ export default {
     },
     ChangeLanguage(value) {
       this.$vuetify.lang.current = value;
-      Socket.language = Map[value];
+      Socket.language = value;
       localStorage.setItem("language", value);
     },
     ChangeTheme(value) {

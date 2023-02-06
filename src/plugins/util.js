@@ -1,6 +1,7 @@
 import { app } from "electron";
 import { writeFile, stat, mkdir } from "fs/promises";
 import { join } from "path";
+import Crypto from "crypto-js";
 
 const i = "320305.131321201";
 
@@ -60,28 +61,8 @@ export const e = (r) => {
         (S[c++] = (63 & A) | 128));
   }
   let p = m,
-    F =
-      "" +
-      String.fromCharCode(43) +
-      String.fromCharCode(45) +
-      String.fromCharCode(97) +
-      ("" +
-        String.fromCharCode(94) +
-        String.fromCharCode(43) +
-        String.fromCharCode(54)),
-    D =
-      "" +
-      String.fromCharCode(43) +
-      String.fromCharCode(45) +
-      String.fromCharCode(51) +
-      ("" +
-        String.fromCharCode(94) +
-        String.fromCharCode(43) +
-        String.fromCharCode(98)) +
-      ("" +
-        String.fromCharCode(43) +
-        String.fromCharCode(45) +
-        String.fromCharCode(102));
+    F = "+-a^+6",
+    D = "+-3^+b+-f";
   for (let b = 0; b < S.length; b++) (p += S[b]), (p = n(p, F));
   return (
     (p = n(p, D)),
@@ -90,6 +71,16 @@ export const e = (r) => {
     (p %= 1e6),
     p.toString() + "." + (p ^ m)
   );
+};
+
+export const y = (data, UA) => {
+  const bv = Crypto.MD5(UA).toString(),
+    lts = "" + Date.now(),
+    salt = lts + parseInt(10 * Math.random(), 10);
+  const sign = Crypto.MD5(
+    "fanyideskweb" + data + salt + "]BjuETDhU)zqSxf-=B#7m"
+  ).toString();
+  return { bv, lts, salt, sign };
 };
 
 export const FormatDate = (date = new Date()) => {

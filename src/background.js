@@ -10,9 +10,11 @@ import {
   Translate,
   GetAvatar,
   GetAuthen,
-  Baidu,
+  Judgment,
 } from "./plugins/axios";
 import { Log } from "./plugins/util";
+import md5 from "blueimp-md5";
+import { Baidu } from "./plugins/header";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -99,14 +101,23 @@ if (isDevelopment) {
 }
 
 const Avatars = {};
+const Trasnslated = {};
 
 ipcMain.handle(
   "GetMovie",
   async (event, tab, ...parameter) => await GetMovie[tab](...parameter)
 );
-ipcMain.handle("Translate", async (event, text, to) =>
-  /【|】|(^\d*$)/.test(text) || text.length <= 0 ? "" : await Translate(text, to)
-);
+ipcMain.handle("Translate", async (event, text, to) => {
+  const key = md5(text) + "-" + to;
+  if (Trasnslated[key]) return Trasnslated[key];
+  else if (/【|】|(^\d*$)/.test(text) || text.length <= 0) return null;
+  const language = await Judgment(text, to);
+  if(language === to) return null;
+  const result = await Translate[Translate.times](text, language, to);
+  Trasnslated[key] = result;
+  Translate.times = (Translate.times + 1) % Translate.length;
+  return result;
+});
 ipcMain.handle("GetAvatar", async (event, uid) => {
   const avatar = Avatars[uid] || (await GetAvatar(uid));
   Avatars[uid] = avatar;

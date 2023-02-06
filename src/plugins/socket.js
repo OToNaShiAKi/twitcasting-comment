@@ -17,7 +17,7 @@ export default class Socket {
       };
     },
     DANMU_MSG: async ({ info, type }, uid) => {
-      if (info[0][12]) return;
+      if (info[0][9]) return;
       const { emots } = JSON.parse(info[0][15].extra);
       let message = info[1];
       let config = "comment";
