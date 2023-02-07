@@ -131,7 +131,7 @@ export default {
     config: ["comment", "gift", "member", "superchat", "stamp"],
   }),
   components: { ConfigSetting, CommentList },
-  async beforeCreate() {
+  async created() {
     const Cookie = localStorage.getItem("Cookie");
     const token = localStorage.getItem("token");
     const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
