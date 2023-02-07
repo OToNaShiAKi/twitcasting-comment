@@ -1,7 +1,7 @@
+import md5 from "blueimp-md5";
 import { app } from "electron";
 import { writeFile, stat, mkdir } from "fs/promises";
 import { join } from "path";
-import Crypto from "crypto-js";
 
 const i = "320305.131321201";
 
@@ -74,12 +74,10 @@ export const e = (r) => {
 };
 
 export const y = (data, UA) => {
-  const bv = Crypto.MD5(UA).toString(),
+  const bv = md5(UA),
     lts = "" + Date.now(),
     salt = lts + parseInt(10 * Math.random(), 10);
-  const sign = Crypto.MD5(
-    "fanyideskweb" + data + salt + "]BjuETDhU)zqSxf-=B#7m"
-  ).toString();
+  const sign = md5("fanyideskweb" + data + salt + "]BjuETDhU)zqSxf-=B#7m");
   return { bv, lts, salt, sign };
 };
 

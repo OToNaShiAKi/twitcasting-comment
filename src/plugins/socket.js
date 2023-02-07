@@ -4,15 +4,19 @@ import GoTo from "vuetify/lib/services/goto";
 
 export default class Socket {
   static Command = {
-    comment: async (item) => {
-      const translate = await ipcRenderer.invoke("Translate", item.message, Socket.language);
+    comment: async (item, uid) => {
+      const { message } = item;
+      const translate = await Socket.Translate(message);
       return {
         id: item.id,
         title: item.author.name,
         avatar: item.author.profileImage,
-        message: item.message,
+        message,
         translate,
-        style: {},
+        style: {
+          title: uid === item.author.id && { color: Colors.UP },
+          message: /【|】/.test(message) && { color: Colors.Translate },
+        },
         config: "comment",
       };
     },
@@ -38,7 +42,7 @@ export default class Socket {
       }
       const [avatar, translate] = await Promise.all([
         ipcRenderer.invoke("GetAvatar", info[2][0]),
-        ipcRenderer.invoke("Translate", info[1].trim(), Socket.language),
+        Socket.Translate(info[1].trim()),
       ]);
       const color =
         (info[2][2] && Colors.Admin) ||
@@ -63,14 +67,13 @@ export default class Socket {
     },
     SUPER_CHAT_MESSAGE_JPN: async ({ data, type }) => {
       const translate =
-        data.message_jpn ||
-        (await ipcRenderer.invoke("Translate", data.message, Socket.language));
+        data.message_jpn || (await Socket.Translate(data.message));
       let title = `<span class="py-1">${data.user_info.uname}</span>`;
       const url = Ships[data.user_info.guard_level];
       if (url) {
         title += `<img src="${url}" class="ml-2" width="20" height="20" />`;
       }
-      title += `<span class="ml-6" style="background-color: ${data.background_price_color};">SuperChat - ￥${data.price}</span>`;
+      title += `<span class="ml-6" style="color: ${data.background_price_color};">SuperChat - ￥${data.price}</span>`;
       return {
         id: type + "-" + data.id,
         message: data.message,
@@ -104,7 +107,21 @@ export default class Socket {
           message: { color: colors.message },
           title: { color: colors.message },
         },
+        config: "member",
+      };
+    },
+    SEND_GIFT: async ({ data, type }) => {
+      if (data.coin_type !== "gold") return;
+      const price = data.price / 1000;
+      const { url } = Socket.Gifts.find(({ id }) => data.giftId == id);
+      return {
+        id: type + "-" + data.tid,
+        title: data.uname,
+        avatar: data.face,
+        translate: "Gift",
+        message: `<img src="${url}" class="ml-2" width="40" height="40" /><span>${data.giftName} - ×${data.num}<span class="ml-6">￥${price}</span></span>`,
         config: "gift",
+        style: { message: { color: Colors.Gift } },
       };
     },
   };
@@ -140,12 +157,15 @@ export default class Socket {
     },
   };
   static language = undefined;
+  static target = document.getElementById("comment");
+  static Gifts = [];
   constructor(type, host) {
     this.comments = [];
     this.socket = new WebSocket(host.host);
     this.socket.timer = null;
     this.type = type;
     this.uid = host.uid;
+    Socket.Gifts = host.gifts;
     this.socket.addEventListener("open", (event) => {
       Socket.Connect[type] && Socket.Connect[type](this.socket, host);
       Socket.ConnectLog(event, type);
@@ -156,10 +176,8 @@ export default class Socket {
       Socket.ConnectLog(event, type);
     });
   }
-  static GoToBottom = () => {
-    const target = document.getElementById("comment");
-    GoTo(target.scrollHeight, { easing: "easeInOutCubic" });
-  };
+  static GoToBottom = () =>
+    GoTo(Socket.target.scrollHeight, { easing: "easeInOutCubic" });
   static ConnectLog = (event, platform) => {
     const text = JSON.stringify({
       trusted: event.isTrusted,
@@ -172,9 +190,12 @@ export default class Socket {
     Socket.Log(`Socket Connect - ${text}`);
   };
   static Log = (text) => ipcRenderer.send("Log", text);
+  static Translate = (text) =>
+    ipcRenderer.invoke("Translate", text, Socket.language);
   Message = async ({ data }) => {
     const messages = await Socket.Parse[this.type](data);
     Socket.Log(`Socket Message - ${JSON.stringify(messages)}`);
+    messages.push();
     for (const item of messages) {
       const comment =
         Socket.Command[item.type] &&

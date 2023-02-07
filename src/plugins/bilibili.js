@@ -65,6 +65,7 @@ export const Colors = Object.freeze({
   UP: "#FF9800",
   Admin: "#E91E63",
   Translate: "#F44336",
+  Gift: "#4CAF50",
   Ship: {
     1: {  message: "#B72E2E", background: "#FEBBAD" },
     2: {  message: "#6F3EC0", background: "#D2BCFB" },

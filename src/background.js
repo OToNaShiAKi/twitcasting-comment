@@ -26,14 +26,14 @@ const CreateWindow = async () => {
   const { height } = screen.getPrimaryDisplay().workAreaSize;
   const win = new BrowserWindow({
     // Create the browser window.
-    width: 450,
-    height: height / 2,
+    width: 420,
+    height: height * 3 / 4,
     center: true,
     icon: "./public/favicon.png",
     alwaysOnTop: true,
-    // frame: false,
+    frame: false,
     titleBarStyle: "hidden",
-    // autoHideMenuBar: true,
+    autoHideMenuBar: true,
     transparent: true,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone

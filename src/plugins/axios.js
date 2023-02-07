@@ -8,7 +8,7 @@ export const GetMovie = {
   Bilibili: async (roomid) => {
     Log(`GetMovie Bilibili - roomid:${roomid}`);
     try {
-      const [{ host_list, token }, { uid }] = await Promise.all([
+      const [{ host_list, token }, { uid }, { list = [] }] = await Promise.all([
         Bilibili.get("/xlive/web-room/v1/index/getDanmuInfo", {
           params: { type: 0, id: roomid },
           baseURL: "https://api.live.bilibili.com/",
@@ -27,14 +27,22 @@ export const GetMovie = {
           },
           baseURL: "https://api.live.bilibili.com/",
         }),
+        Bilibili.get("/xlive/web-room/v1/giftPanel/giftConfig", {
+          params: { room_id: roomid, platform: "pc" },
+          baseURL: "https://api.live.bilibili.com/",
+        }),
       ]);
       const host = host_list[host_list.length - 1];
-      Log(`GetMovie Success - host:${JSON.stringify(host_list)} token:${token}`);
+      Log(`GetMovie Success - host:${JSON.stringify(host)} token:${token}`);
       return {
         host: `wss://${host.host}:${host.wss_port}/sub`,
         token,
         roomid,
         uid,
+        gifts: list.map(({ id, gif, img_basic }) => ({
+          id,
+          url: gif || img_basic,
+        })),
       };
     } catch (error) {
       Log(`GetMovie Error - ${JSON.stringify(error)}`);
@@ -65,7 +73,7 @@ export const GetMovie = {
   },
 };
 
-export const Judgment = async (query, to) => {
+export const Judgment = async (query) => {
   Log(`Judgment - query:${query}`);
   try {
     let { lan } = await Baidu.post("/langdetect", { query });
@@ -77,9 +85,9 @@ export const Judgment = async (query, to) => {
     }
     Log(`Judgment Success - lan:${lan}`);
     return lan;
-  } catch(error) {
+  } catch (error) {
     Log(`Judgment Error - ${JSON.stringify(error)}`);
-    return to;
+    return "AUTO";
   }
 };
 
@@ -113,7 +121,7 @@ export const Translate = [
       Log(`Translate Error - ${JSON.stringify(error)}`);
       return null;
     }
-  }
+  },
 ];
 Translate.times = 0;
 

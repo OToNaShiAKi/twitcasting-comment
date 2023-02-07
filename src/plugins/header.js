@@ -17,8 +17,6 @@ export const Baidu = axios.create({
   headers: {
     Origin: "https://fanyi.baidu.com/",
     Referer: "https://fanyi.baidu.com/",
-    "Acs-Token":
-      "1675584313980_1675658805590_u30LM1FFW8cEtKgfvq0kzbWSYrfK+bn1XO39/QqGSxpPVAQRSt8w8udSquJYBYCQXxjPJaTgDIMdglGU5eTzzIDIIPL4Uctg8kwqTGAlmhWD1J/hUHLqCB4aF9qx92IkuTiNTbDSGCQNiFo6s3Amvvd5sfiz1BDXFgHIUSxvyuN7POG97O0XFRZAOIDCK3fVF6j5PBLSeN+YmuiTVoOZp1Fq3ISjwMpLgLBWfziBYlyDKJgBhb/GFM3veUxBdt/AJTTYXA6dQFmrDKK3aapgCrjvOSfu3/GsxBBDPiVZQNaYw9GCNd/qiuq/qRGdcVyx",
     "sec-ch-ua":
       '"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"',
     "sec-ch-ua-mobile": "?0",
