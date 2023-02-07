@@ -70,10 +70,10 @@ const locales = Object.freeze({
     link: "연결",
     languages: {
       resouces: "언어",
-      japanses: "중국어",
-      chinese: "일본어",
-      english: "한국어",
-      korean: "영어",
+      japanses: "일본어",
+      chinese: "중국어",
+      english: "영어",
+      korean: "한국어",
     },
     hint: "연결 오류",
     theme: {

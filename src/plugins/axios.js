@@ -92,32 +92,39 @@ export const Judgment = async (query) => {
 };
 
 export const Translate = [
-  async (query, from = "zhHans", to = "ja") => {
+  async (
+    query,
+    from = "zhHans",
+    to = "ja",
+    token = y(query, Youdao.defaults.headers["User-Agent"])
+  ) => {
     from = LanguageMap.Youdao[from] || from;
     to = LanguageMap.Youdao[to] || to;
-    const token = y(query, Youdao.defaults.headers["User-Agent"]);
     Log(`Translate Youdao - sign:${JSON.stringify(token)} query:${query}`);
+    const data = {
+      i: query,
+      from,
+      to,
+      smartresult: "dict",
+      client: "fanyideskweb",
+      ...token,
+      doctype: "json",
+      version: "2.1",
+      keyfrom: "fanyi.web",
+      action: "FY_BY_REALTlME",
+    };
     try {
       const {
         translateResult: [[{ tgt }]],
-      } = await Youdao.post(
-        "/translate_o",
-        QS.stringify({
-          i: query,
-          from,
-          to,
-          smartresult: "dict",
-          client: "fanyideskweb",
-          ...token,
-          doctype: "json",
-          version: "2.1",
-          keyfrom: "fanyi.web",
-          action: "FY_BY_REALTlME",
-        })
-      );
+      } = await Youdao.post("/translate_o", QS.stringify(data));
       Log(`Translate Success - tgt:${tgt}`);
       return tgt;
     } catch (error) {
+      if (error.errorCode === 30) {
+        const i = await Translate[0](query, from, "zhHans", token);
+        const result = await Translate[0](i, "zhHans", to);
+        return result;
+      }
       Log(`Translate Error - ${JSON.stringify(error)}`);
       return null;
     }
