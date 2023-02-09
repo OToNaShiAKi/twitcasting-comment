@@ -112,19 +112,32 @@ export default class Socket {
     },
     SEND_GIFT: async ({ data, type }) => {
       if (data.coin_type !== "gold") return;
-      const price = data.price / 1000;
+      const number = data.batch_combo_num || data.num;
+      const price = (data.price * number) / 1000;
       const { url } = Socket.Gifts.find(({ id }) => data.giftId == id);
-      return {
+      const gift = Socket.Gifts[data.batch_combo_id];
+      const message = `${data.giftName} - <img src="${url}" class="ml-2" width="40" height="40" /><span>×${number}</span><span class="ml-6">￥${price}</span>`;
+      if (gift) {
+        gift.message = message;
+        return;
+      }
+      const result = {
         id: type + "-" + data.tid,
         title: data.uname,
         avatar: data.face,
         translate: "Gift",
-        message: `<img src="${url}" class="ml-2" width="40" height="40" /><span>${data.giftName} - ×${data.num}<span class="ml-6">￥${price}</span></span>`,
+        batch_combo_id: data.batch_combo_id,
+        number,
+        message,
         config: "gift",
         style: { message: { color: Colors.Gift } },
       };
+      Socket.Gifts[data.batch_combo_id] = result
+      return result;
     },
   };
+  static Gifts = {};
+  static AutoUp = true;
   static Parse = {
     Twitcasting: (data) => JSON.parse(data),
     Bilibili: (data) => new Promise((resolve) => HandleMessage(data, resolve)),
@@ -195,14 +208,13 @@ export default class Socket {
   Message = async ({ data }) => {
     const messages = await Socket.Parse[this.type](data);
     Socket.Log(`Socket Message - ${JSON.stringify(messages)}`);
-    messages.push();
     for (const item of messages) {
       const comment =
         Socket.Command[item.type] &&
         (await Socket.Command[item.type](item, this.uid));
       if (comment) {
         this.comments.push(comment);
-        Socket.GoToBottom();
+        Socket.AutoUp && Socket.GoToBottom();
       }
     }
   };

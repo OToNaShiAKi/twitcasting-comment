@@ -78,3 +78,5 @@ export const Ships = Object.freeze({
   2: "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-2.6f68d77..png",
   3: "https://s1.hdslb.com/bfs/static/blive/blfe-live-room/static/img/icon-l-3.402ac8f..png",
 });
+
+export const FontStyle = { size: [10, 24], face: null };

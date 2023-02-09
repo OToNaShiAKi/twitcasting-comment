@@ -68,7 +68,7 @@
       </v-card>
     </v-dialog>
     <v-dialog v-model="setting">
-      <ConfigSetting>
+      <ConfigSetting :size="size">
         <v-checkbox
           class="ma-0"
           value="comment"
@@ -114,6 +114,7 @@ import { ipcRenderer } from "electron";
 import Socket from "./plugins/socket";
 import ConfigSetting from "./components/ConfigSetting.vue";
 import CommentList from "./components/CommentList.vue";
+import { FontStyle } from "./plugins/bilibili";
 
 export default {
   name: "App",
@@ -129,9 +130,18 @@ export default {
     Bilibili: localStorage.getItem("roomid") || "",
     setting: false,
     config: ["comment", "gift", "member", "superchat", "stamp"],
+    size: "16",
   }),
   components: { ConfigSetting, CommentList },
   async created() {
+    const fontface = localStorage.getItem("fontface");
+    this. size = localStorage.getItem("fontsize") || this.size;
+    document.documentElement.style.fontSize = this.size + "px";
+    if (fontface) {
+      FontStyle.face = new FontFace("CandyCustom", `url(${fontface})`);
+      await FontStyle.face.load();
+      document.fonts.add(FontStyle.face);
+    }
     const Cookie = localStorage.getItem("Cookie");
     const token = localStorage.getItem("token");
     const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
@@ -176,6 +186,10 @@ export default {
 }
 #app {
   position: relative;
+  font-family: "CandyCustom", "Roboto", sans-serif;
+}
+.v-list-item__subtitle {
+  -webkit-line-clamp: 6 !important;
 }
 #app,
 #skeleton > div,

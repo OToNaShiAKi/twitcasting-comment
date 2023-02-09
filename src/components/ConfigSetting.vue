@@ -25,6 +25,36 @@
         :label="$vuetify.lang.t('$vuetify.languages.english')"
       />
     </v-radio-group>
+    <v-subheader>
+      {{ $vuetify.lang.t("$vuetify.config.content") }}
+    </v-subheader>
+    <section class="px-3">
+      <slot />
+      <v-switch
+        :label="$vuetify.lang.t('$vuetify.autoup')"
+        v-model="auto"
+        @change="AutoUp"
+      />
+    </section>
+    <v-subheader>
+      {{ $vuetify.lang.t("$vuetify.font") }}
+    </v-subheader>
+    <section class="px-3">
+      <v-slider
+        dense
+        thumb-label="always"
+        thumb-size="24"
+        hide-details
+        :max="range[1]"
+        :min="range[0]"
+        :value="size"
+        @change="ChangeSize"
+      />
+      <v-file-input
+        :label="$vuetify.lang.t('$vuetify.fontfile')"
+        @change="ChangeFont"
+      />
+    </section>
     <v-subheader class="d-flex justify-space-between align-center">
       {{ $vuetify.lang.t("$vuetify.theme.title") }}
       <v-btn @click="ChangeMode" icon x-small>
@@ -62,12 +92,6 @@
         value="#9c28b1"
       />
     </v-radio-group>
-    <v-subheader>
-      {{ $vuetify.lang.t("$vuetify.config.content") }}
-    </v-subheader>
-    <section class="px-3">
-      <slot />
-    </section>
     <v-subheader class="caption">
       {{ $vuetify.lang.t("$vuetify.version") }}: {{ version }}
     </v-subheader>
@@ -77,10 +101,12 @@
 <script>
 import Socket from "../plugins/socket";
 import { version } from "../../package.json";
+import { FontStyle } from "@/plugins/bilibili";
 
 export default {
   name: "ConfigSetting",
-  data: () => ({ version }),
+  data: () => ({ version, range: FontStyle.size, auto: Socket.AutoUp }),
+  props: { size: String },
   methods: {
     ChangeMode() {
       this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
@@ -95,6 +121,30 @@ export default {
       this.$vuetify.theme.themes.light.primary = value;
       this.$vuetify.theme.themes.dark.primary = value;
       localStorage.setItem("theme", value);
+    },
+    ChangeFont(file) {
+      if (FontStyle.face) {
+        document.fonts.delete(FontStyle.face);
+        FontStyle.face = null;
+        localStorage.removeItem("fontface");
+      }
+      if (file) {
+        const reader = new FileReader();
+        reader.addEventListener("load", async ({ target }) => {
+          FontStyle.face = new FontFace("CandyCustom", `url(${target.result})`);
+          await FontStyle.face.load();
+          document.fonts.add(FontStyle.face);
+          localStorage.setItem("fontface", target.result);
+        });
+        reader.readAsDataURL(file);
+      }
+    },
+    ChangeSize(size) {
+      document.documentElement.style.fontSize = size + "px";
+      localStorage.setItem("fontsize", size);
+    },
+    AutoUp(value) {
+      Socket.AutoUp = value;
     },
   },
 };
