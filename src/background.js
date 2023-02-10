@@ -15,6 +15,7 @@ import {
 import { Log } from "./plugins/util";
 import md5 from "blueimp-md5";
 import { Baidu } from "./plugins/header";
+import FontList from "font-list";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -27,7 +28,7 @@ const CreateWindow = async () => {
   const win = new BrowserWindow({
     // Create the browser window.
     width: 420,
-    height: height * 3 / 4,
+    height: (height * 3) / 4,
     center: true,
     icon: "./public/favicon.png",
     alwaysOnTop: true,
@@ -112,7 +113,7 @@ ipcMain.handle("Translate", async (event, text, to) => {
   if (Trasnslated[key]) return Trasnslated[key];
   else if (/【|】|(^\d*$)/.test(text) || text.length <= 0) return null;
   const language = await Judgment(text, to);
-  if(language === to) return null;
+  if (language === to) return null;
   const result = await Translate[Translate.times](text, language, to);
   Trasnslated[key] = result;
   Translate.times = (Translate.times + 1) % Translate.length;
@@ -133,4 +134,8 @@ ipcMain.handle("GetAuthen", async (event, Cookie, token) => {
   Baidu.defaults.headers.Cookie = Cookie;
   Translate.token = token;
   return { Cookie, token };
+});
+ipcMain.handle("GetFont", async (event) => {
+  const result = await FontList.getFonts();
+  return result.map((item) => item.replace(/^"|"$/g, ""));
 });

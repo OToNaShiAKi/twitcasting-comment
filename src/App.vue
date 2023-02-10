@@ -70,6 +70,7 @@
     <v-dialog v-model="setting">
       <ConfigSetting :size="size">
         <v-checkbox
+          dense
           class="ma-0"
           value="comment"
           v-model="config"
@@ -77,6 +78,7 @@
           :label="$vuetify.lang.t('$vuetify.config.comment')"
         />
         <v-checkbox
+          dense
           class="ma-0"
           value="gift"
           v-model="config"
@@ -84,6 +86,7 @@
           :label="$vuetify.lang.t('$vuetify.config.gift')"
         />
         <v-checkbox
+          dense
           class="ma-0"
           value="member"
           v-model="config"
@@ -91,6 +94,7 @@
           :label="$vuetify.lang.t('$vuetify.config.member')"
         />
         <v-checkbox
+          dense
           class="ma-0"
           value="superchat"
           v-model="config"
@@ -98,6 +102,7 @@
           :label="$vuetify.lang.t('$vuetify.config.superchat')"
         />
         <v-checkbox
+          dense
           class="ma-0"
           value="stamp"
           v-model="config"
@@ -114,7 +119,6 @@ import { ipcRenderer } from "electron";
 import Socket from "./plugins/socket";
 import ConfigSetting from "./components/ConfigSetting.vue";
 import CommentList from "./components/CommentList.vue";
-import { FontStyle } from "./plugins/bilibili";
 
 export default {
   name: "App",
@@ -134,14 +138,7 @@ export default {
   }),
   components: { ConfigSetting, CommentList },
   async created() {
-    const fontface = localStorage.getItem("fontface");
-    this. size = localStorage.getItem("fontsize") || this.size;
-    document.documentElement.style.fontSize = this.size + "px";
-    if (fontface) {
-      FontStyle.face = new FontFace("CandyCustom", `url(${fontface})`);
-      await FontStyle.face.load();
-      document.fonts.add(FontStyle.face);
-    }
+    this.size = localStorage.getItem("fontsize") || this.size;
     const Cookie = localStorage.getItem("Cookie");
     const token = localStorage.getItem("token");
     const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
@@ -149,6 +146,8 @@ export default {
     localStorage.setItem("token", result.token);
     Socket.language = this.$vuetify.lang.current;
     Socket.target = document.getElementById("comment");
+    const fontface = localStorage.getItem("fontface");
+    if (fontface) document.getElementById("app").style.fontFamily = fontface;
   },
   methods: {
     async Link() {
@@ -186,17 +185,19 @@ export default {
 }
 #app {
   position: relative;
-  font-family: "CandyCustom", "Roboto", sans-serif;
 }
 .v-list-item__subtitle {
   -webkit-line-clamp: 6 !important;
 }
 #app,
 #skeleton > div,
-.v-list {
+#comment {
   background-color: transparent !important;
 }
 *::-webkit-scrollbar {
   width: 0;
+}
+.mdi-close::before {
+  font-size: 18px !important;
 }
 </style>

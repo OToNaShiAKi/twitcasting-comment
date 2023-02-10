@@ -14,7 +14,6 @@ const locales = Object.freeze({
       korean: "韩语",
     },
     font: "字体",
-    fontfile: "上传字体文件",
     hint: "连接失败",
     autoup: "自动上浮",
     theme: {
@@ -49,7 +48,6 @@ const locales = Object.freeze({
     },
     autoup: "自動浮上",
     font: "フォント",
-    fontfile: "アップロードフォントファイル",
     hint: "接続が失敗になりました",
     theme: {
       title: "メイン色",
@@ -83,7 +81,6 @@ const locales = Object.freeze({
     },
     font: "문자",
     autoup: "자동 상승",
-    fontfile: "글꼴 파일 업로드",
     hint: "연결 오류",
     theme: {
       title: "색상",
@@ -118,7 +115,6 @@ const locales = Object.freeze({
     hint: "Link Error",
     autoup: "Automatic Floating",
     font: "Font",
-    fontfile: "Upload Font File",
     theme: {
       title:"Theme",
       pink: "Maiden pink",
