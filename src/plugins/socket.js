@@ -132,12 +132,14 @@ export default class Socket {
         config: "gift",
         style: { message: { color: Colors.Gift } },
       };
-      Socket.Gifts[data.batch_combo_id] = result
+      Socket.Gifts[data.batch_combo_id] = result;
       return result;
     },
   };
   static Gifts = {};
   static AutoUp = true;
+  static AutoTranslate =
+    localStorage.getItem("AutoTranslate") !== "false";
   static Parse = {
     Twitcasting: (data) => JSON.parse(data),
     Bilibili: (data) => new Promise((resolve) => HandleMessage(data, resolve)),
@@ -171,7 +173,6 @@ export default class Socket {
   };
   static language = undefined;
   static target = document.getElementById("comment");
-  static Gifts = [];
   constructor(type, host) {
     this.comments = [];
     this.socket = new WebSocket(host.host);
@@ -204,7 +205,8 @@ export default class Socket {
   };
   static Log = (text) => ipcRenderer.send("Log", text);
   static Translate = (text) =>
-    ipcRenderer.invoke("Translate", text, Socket.language);
+    Socket.AutoTranslate ?
+    ipcRenderer.invoke("Translate", text, Socket.language) : "";
   Message = async ({ data }) => {
     const messages = await Socket.Parse[this.type](data);
     Socket.Log(`Socket Message - ${JSON.stringify(messages)}`);

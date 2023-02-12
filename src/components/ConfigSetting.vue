@@ -25,6 +25,12 @@
         value="en"
         :label="$vuetify.lang.t('$vuetify.languages.english')"
       />
+      <v-switch
+        :label="$vuetify.lang.t('$vuetify.autotranslate')"
+        v-model="translate"
+        @change="AutoTranslate"
+        dense
+      />
     </v-radio-group>
     <v-subheader>
       {{ $vuetify.lang.t("$vuetify.config.content") }}
@@ -118,7 +124,13 @@ import { ipcRenderer } from "electron";
 
 export default {
   name: "ConfigSetting",
-  data: () => ({ version, auto: Socket.AutoUp, fonts: [], fontface: "" }),
+  data: () => ({
+    version,
+    auto: Socket.AutoUp,
+    translate: Socket.AutoTranslate,
+    fonts: [],
+    fontface: "",
+  }),
   props: { size: String },
   async created() {
     this.fonts = await ipcRenderer.invoke("GetFont");
@@ -150,6 +162,10 @@ export default {
     },
     AutoUp(value) {
       Socket.AutoUp = value;
+    },
+    AutoTranslate(value) {
+      Socket.AutoTranslate = value;
+      localStorage.setItem("AutoTranslate", value);
     },
   },
 };
