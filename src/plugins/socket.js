@@ -112,10 +112,12 @@ export default class Socket {
     },
     SEND_GIFT: async ({ data, type }) => {
       if (data.coin_type !== "gold") return;
-      const number = data.batch_combo_num || data.num;
+      const number =
+        (data.batch_combo_send && data.batch_combo_send.batch_combo_num) ||
+        data.num;
       const price = (data.price * number) / 1000;
       const { url } = Socket.Gifts.find(({ id }) => data.giftId == id);
-      const gift = Socket.Gifts[data.batch_combo_id];
+      const gift = Socket.ComboGift[data.batch_combo_id];
       const message = `${data.giftName} - <img src="${url}" class="ml-2" width="40" height="40" /><span>×${number}</span><span class="ml-6">￥${price}</span>`;
       if (gift) {
         gift.message = message;
@@ -127,19 +129,17 @@ export default class Socket {
         avatar: data.face,
         translate: "Gift",
         batch_combo_id: data.batch_combo_id,
-        number,
         message,
         config: "gift",
         style: { message: { color: Colors.Gift } },
       };
-      Socket.Gifts[data.batch_combo_id] = result;
+      Socket.ComboGift[data.batch_combo_id] = result;
       return result;
     },
   };
-  static Gifts = {};
+  static ComboGift = {};
   static AutoUp = true;
-  static AutoTranslate =
-    localStorage.getItem("AutoTranslate") !== "false";
+  static AutoTranslate = localStorage.getItem("AutoTranslate") !== "false";
   static Parse = {
     Twitcasting: (data) => JSON.parse(data),
     Bilibili: (data) => new Promise((resolve) => HandleMessage(data, resolve)),
@@ -173,6 +173,7 @@ export default class Socket {
   };
   static language = undefined;
   static target = document.getElementById("comment");
+  static Gifts = [];
   constructor(type, host) {
     this.comments = [];
     this.socket = new WebSocket(host.host);
@@ -205,8 +206,9 @@ export default class Socket {
   };
   static Log = (text) => ipcRenderer.send("Log", text);
   static Translate = (text) =>
-    Socket.AutoTranslate ?
-    ipcRenderer.invoke("Translate", text, Socket.language) : "";
+    Socket.AutoTranslate
+      ? ipcRenderer.invoke("Translate", text, Socket.language)
+      : "";
   Message = async ({ data }) => {
     const messages = await Socket.Parse[this.type](data);
     Socket.Log(`Socket Message - ${JSON.stringify(messages)}`);
