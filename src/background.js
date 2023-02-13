@@ -11,6 +11,7 @@ import {
   GetAvatar,
   GetAuthen,
   Judgment,
+  Comment
 } from "./plugins/axios";
 import { Log } from "./plugins/util";
 import md5 from "blueimp-md5";
@@ -139,3 +140,4 @@ ipcMain.handle("GetFont", async (event) => {
   const result = await FontList.getFonts();
   return result.map((item) => item.replace(/^"|"$/g, ""));
 });
+ipcMain.on("Comment", Comment);

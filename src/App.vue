@@ -7,6 +7,12 @@
     />
     <v-main>
       <CommentList :comments="comments" :config="config" />
+      <v-text-field
+        class="mx-3"
+        append-icon="mdi-arrow-left-bottom"
+        v-model="message"
+        @keypress.enter="send"
+      />
     </v-main>
     <v-btn class="drag" fab fixed top right x-small color="primary">
       <v-icon>mdi-cursor-move</v-icon>
@@ -39,6 +45,18 @@
                 v-model="key"
                 label="Key"
                 prepend-icon="mdi-key-wireless"
+              />
+              <v-text-field
+                hide-details
+                v-model="session"
+                label="Session"
+                prepend-icon="mdi-cookie"
+              />
+              <v-text-field
+                hide-details
+                v-model="authen"
+                label="Cookie"
+                prepend-icon="mdi-cookie"
               />
             </v-tab-item>
             <v-tab-item value="Bilibili">
@@ -135,6 +153,9 @@ export default {
     setting: false,
     config: ["comment", "gift", "member", "superchat", "stamp"],
     size: "16",
+    session: localStorage.getItem("session") || "",
+    authen: localStorage.getItem("authen") || "",
+    message: "",
   }),
   components: { ConfigSetting, CommentList },
   async created() {
@@ -157,7 +178,9 @@ export default {
         "GetMovie",
         this.tab,
         this[this.tab].toLowerCase(),
-        this.key
+        this.key,
+        this.session,
+        this.authen
       );
       if (result) {
         this.socket = new Socket(this.tab, result);
@@ -172,7 +195,15 @@ export default {
       localStorage.setItem("nick", this.Twitcasting);
       localStorage.setItem("roomid", this.Bilibili);
       localStorage.setItem("tab", this.tab);
+      localStorage.setItem("session", this.session);
+      localStorage.setItem("authen", this.authen);
       this.loading = false;
+    },
+    send() {
+      const message = `【${this.message}】`;
+      const nick = this.Twitcasting.toLowerCase();
+      ipcRenderer.send("Comment", message, nick);
+      this.message = "";
     },
   },
 };

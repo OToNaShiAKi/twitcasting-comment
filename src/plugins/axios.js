@@ -49,8 +49,10 @@ export const GetMovie = {
       return null;
     }
   },
-  Twitcasting: async (nick, key) => {
+  Twitcasting: async (nick, key, session, Cookie) => {
     const password = md5(key);
+    Twitcasting.defaults.headers.session = session;
+    Twitcasting.defaults.headers.Cookie = Cookie;
     Log(`GetMovie Twitcasting - nick:${nick} key:${key} password:${password}`);
     try {
       const {
@@ -59,6 +61,7 @@ export const GetMovie = {
         baseURL: "https://frontendapi.twitcasting.tv",
         params: { pass: password },
       });
+      Twitcasting.defaults.headers.id = id;
       const { url } = await Twitcasting.post(
         "eventpubsuburl.php",
         QS.stringify({ movie_id: id, password }),
@@ -168,5 +171,28 @@ export const GetAuthen = async () => {
     return { Cookie, token: match[1] };
   } catch (error) {
     Log(`GetAuthen Error - ${JSON.stringify(error)}`);
+  }
+};
+
+export const Comment = async (event, message, nick) => {
+  const { id, session, Cookie } = Twitcasting.defaults.headers;
+  Log(`Comment - message${message}`);
+  try {
+    await Twitcasting.post(
+      `https://twitcasting.tv/${nick}/userajax.php`,
+      QS.stringify({
+        m: id,
+        s: message,
+        o: nick,
+        nt: 2,
+        cs_session_id: session,
+      }),
+      {
+        params: { c: "post", format: "json" },
+        headers: { Cookie },
+      }
+    );
+  } catch (error) {
+    Log(`CommentError - ${JSON.stringify(error)}`);
   }
 };
