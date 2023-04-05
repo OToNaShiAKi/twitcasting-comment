@@ -1,21 +1,8 @@
 <template>
   <v-app>
-    <v-skeleton-loader
-      id="skeleton"
-      v-if="comments.length <= 0"
-      type="list-item-avatar-three-line, list-item-avatar-two-line"
-    />
-    <v-main>
-      <CommentList :comments="comments" :config="config" />
-    </v-main>
-    <v-btn class="drag" fab fixed top right x-small color="primary">
-      <v-icon>mdi-cursor-move</v-icon>
-    </v-btn>
-    <v-btn @click="setting = !setting" fab fixed bottom right x-small>
-      <v-icon color="primary">mdi-cogs</v-icon>
-    </v-btn>
-    <v-dialog v-model="connect" persistent>
-      <v-card>
+    <v-system-bar app fixed height="30" />
+    <v-main class="my-3">
+      <v-card class="mb-3">
         <v-card-title>
           <v-tabs v-model="tab" centered>
             <v-tab href="#Twitcasting">Twitcasting</v-tab>
@@ -66,64 +53,19 @@
           </v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
-    <v-dialog v-model="setting">
-      <ConfigSetting :size="size">
-        <v-checkbox
-          dense
-          class="ma-0"
-          value="comment"
-          v-model="config"
-          hide-details
-          :label="$vuetify.lang.t('$vuetify.config.comment')"
-        />
-        <v-checkbox
-          dense
-          class="ma-0"
-          value="gift"
-          v-model="config"
-          hide-details
-          :label="$vuetify.lang.t('$vuetify.config.gift')"
-        />
-        <v-checkbox
-          dense
-          class="ma-0"
-          value="member"
-          v-model="config"
-          hide-details
-          :label="$vuetify.lang.t('$vuetify.config.member')"
-        />
-        <v-checkbox
-          dense
-          class="ma-0"
-          value="superchat"
-          v-model="config"
-          hide-details
-          :label="$vuetify.lang.t('$vuetify.config.superchat')"
-        />
-        <v-checkbox
-          dense
-          class="ma-0"
-          value="stamp"
-          v-model="config"
-          hide-details
-          :label="$vuetify.lang.t('$vuetify.config.stamp')"
-        />
-      </ConfigSetting>
-    </v-dialog>
+      <ConfigSetting />
+    </v-main>
   </v-app>
 </template>
 
 <script>
-import { ipcRenderer } from "electron";
+import { ipcRenderer, shell } from "electron";
 import Socket from "./plugins/socket";
 import ConfigSetting from "./components/ConfigSetting.vue";
-import CommentList from "./components/CommentList.vue";
 
 export default {
   name: "App",
   data: () => ({
-    comments: [],
     key: localStorage.getItem("key") || "",
     Twitcasting: localStorage.getItem("nick") || "",
     loading: false,
@@ -132,22 +74,15 @@ export default {
     connect: true,
     tab: localStorage.getItem("tab") || "Twitcasting",
     Bilibili: localStorage.getItem("roomid") || "",
-    setting: false,
-    config: ["comment", "gift", "member", "superchat", "stamp"],
-    size: "16",
   }),
-  components: { ConfigSetting, CommentList },
+  components: { ConfigSetting },
   async created() {
-    this.size = localStorage.getItem("fontsize") || this.size;
     const Cookie = localStorage.getItem("Cookie");
     const token = localStorage.getItem("token");
     const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
     localStorage.setItem("Cookie", result.Cookie);
     localStorage.setItem("token", result.token);
-    Socket.language = this.$vuetify.lang.current;
-    Socket.target = document.getElementById("comment");
-    const fontface = localStorage.getItem("fontface");
-    if (fontface) document.getElementById("app").style.fontFamily = fontface;
+    shell.openExternal("http://localhost:9669/");
   },
   methods: {
     async Link() {
@@ -161,7 +96,6 @@ export default {
       );
       if (result) {
         this.socket = new Socket(this.tab, result);
-        this.comments = this.socket.comments;
         this.hint = "";
         this.connect = false;
       } else {
@@ -184,14 +118,6 @@ export default {
   -webkit-user-drag: none;
 }
 #app {
-  position: relative;
-}
-.v-list-item__subtitle {
-  -webkit-line-clamp: 6 !important;
-}
-#app,
-#skeleton > div,
-#comment {
   background-color: transparent !important;
 }
 *::-webkit-scrollbar {
@@ -199,5 +125,11 @@ export default {
 }
 .mdi-close::before {
   font-size: 18px !important;
+}
+#app .v-system-bar {
+  -webkit-app-region: drag;
+  -webkit-user-drag: none;
+  border-radius: 4px;
+  background-color: #fff;
 }
 </style>

@@ -16,6 +16,7 @@ import { Log } from "./plugins/util";
 import md5 from "blueimp-md5";
 import { Baidu } from "./plugins/header";
 import FontList from "font-list";
+import io from "./plugins/server";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -36,6 +37,7 @@ const CreateWindow = async () => {
     titleBarStyle: "hidden",
     autoHideMenuBar: true,
     transparent: true,
+    titleBarOverlay: { color: "#ffffff00", symbolColor: "rgba(0, 0, 0, 0.54)" },
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -104,10 +106,11 @@ if (isDevelopment) {
 const Avatars = {};
 const Trasnslated = {};
 
-ipcMain.handle(
-  "GetMovie",
-  async (event, tab, ...parameter) => await GetMovie[tab](...parameter)
-);
+ipcMain.handle("GetMovie", async (event, tab, ...parameter) => {
+  const result = await GetMovie[tab](...parameter);
+  io.emit("Socket", result);
+  return result;
+});
 ipcMain.handle("Translate", async (event, text, to) => {
   const key = md5(text) + "-" + to;
   if (Trasnslated[key]) return Trasnslated[key];
@@ -139,3 +142,8 @@ ipcMain.handle("GetFont", async (event) => {
   const result = await FontList.getFonts();
   return result.map((item) => item.replace(/^"|"$/g, ""));
 });
+ipcMain.on("Setting", (event, message) => {
+  io.Setting = Object.assign(io.Setting, message);
+  io.emit("Setting", message);
+});
+ipcMain.on("Comment", (event, message) => io.emit("Comment", message));

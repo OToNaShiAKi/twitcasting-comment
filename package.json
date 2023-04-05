@@ -3,11 +3,9 @@
   "version": "1.0.6",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "electron:build": "vue-cli-service electron:build",
-    "electron:serve": "vue-cli-service electron:serve",
+    "build": "vue-cli-service electron:build",
+    "serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
   },
@@ -21,6 +19,7 @@
     "font-list": "^1.4.5",
     "qs": "^6.11.0",
     "roboto-fontface": "*",
+    "socket.io": "^4.6.1",
     "vue": "^2.6.14",
     "vuetify": "^2.6.0"
   },

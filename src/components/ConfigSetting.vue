@@ -36,7 +36,51 @@
       {{ $vuetify.lang.t("$vuetify.config.content") }}
     </v-subheader>
     <section class="px-3">
-      <slot />
+      <v-checkbox
+        dense
+        class="ma-0"
+        value="comment"
+        v-model="config"
+        hide-details
+        :label="$vuetify.lang.t('$vuetify.config.comment')"
+        @change="ChangeConfig"
+      />
+      <v-checkbox
+        dense
+        class="ma-0"
+        value="gift"
+        v-model="config"
+        hide-details
+        @change="ChangeConfig"
+        :label="$vuetify.lang.t('$vuetify.config.gift')"
+      />
+      <v-checkbox
+        dense
+        class="ma-0"
+        value="member"
+        v-model="config"
+        hide-details
+        @change="ChangeConfig"
+        :label="$vuetify.lang.t('$vuetify.config.member')"
+      />
+      <v-checkbox
+        dense
+        class="ma-0"
+        value="superchat"
+        v-model="config"
+        hide-details
+        @change="ChangeConfig"
+        :label="$vuetify.lang.t('$vuetify.config.superchat')"
+      />
+      <v-checkbox
+        dense
+        class="ma-0"
+        value="stamp"
+        v-model="config"
+        hide-details
+        @change="ChangeConfig"
+        :label="$vuetify.lang.t('$vuetify.config.stamp')"
+      />
       <v-switch
         :label="$vuetify.lang.t('$vuetify.autoup')"
         v-model="auto"
@@ -130,42 +174,69 @@ export default {
     translate: Socket.AutoTranslate,
     fonts: [],
     fontface: "",
+    config: ["comment", "gift", "member", "superchat", "stamp"],
+    size: 16,
   }),
-  props: { size: String },
   async created() {
+    this.size = localStorage.getItem("fontsize") || this.size;
     this.fonts = await ipcRenderer.invoke("GetFont");
+    Socket.language = this.$vuetify.lang.current;
+    const fontface = localStorage.getItem("fontface");
+    if (fontface) document.getElementById("app").style.fontFamily = fontface;
     this.fontface = document.getElementById("app").style.fontFamily;
+
+    ipcRenderer.send("Setting", {
+      dark: this.$vuetify.theme.dark,
+      language: this.$vuetify.lang.current,
+      theme: this.$vuetify.theme.themes.light.primary,
+      fontface: this.fontface,
+      fontsize: this.size,
+      AutoUp: Socket.AutoUp,
+      AutoTranslate: Socket.AutoTranslate,
+      config: this.config,
+    });
   },
   methods: {
     ChangeMode() {
-      this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
-      localStorage.setItem("dark", this.$vuetify.theme.dark ? 1 : 0);
+      const value = !this.$vuetify.theme.dark;
+      this.$vuetify.theme.dark = value;
+      ipcRenderer.send("Setting", { dark: value });
+      localStorage.setItem("dark", value ? 1 : 0);
     },
     ChangeLanguage(value) {
       this.$vuetify.lang.current = value;
       Socket.language = value;
+      ipcRenderer.send("Setting", { language: value });
       localStorage.setItem("language", value);
     },
     ChangeTheme(value) {
       this.$vuetify.theme.themes.light.primary = value;
       this.$vuetify.theme.themes.dark.primary = value;
+      ipcRenderer.send("Setting", { theme: value });
       localStorage.setItem("theme", value);
     },
     ChangeFont(value) {
       document.getElementById("app").style.fontFamily = value;
+      ipcRenderer.send("Setting", { fontface: value });
       if (value) localStorage.setItem("fontface", value);
       else localStorage.removeItem("fontface");
     },
-    ChangeSize(size) {
-      document.documentElement.style.fontSize = size + "px";
-      localStorage.setItem("fontsize", size);
+    ChangeSize(value) {
+      document.documentElement.style.fontSize = value + "px";
+      ipcRenderer.send("Setting", { fontsize: value });
+      localStorage.setItem("fontsize", value);
     },
     AutoUp(value) {
+      ipcRenderer.send("Setting", { AutoUp: value });
       Socket.AutoUp = value;
     },
     AutoTranslate(value) {
       Socket.AutoTranslate = value;
+      ipcRenderer.send("Setting", { AutoTranslate: value });
       localStorage.setItem("AutoTranslate", value);
+    },
+    ChangeConfig(value) {
+      ipcRenderer.send("Setting", { config: value });
     },
   },
 };

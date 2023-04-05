@@ -1,6 +1,5 @@
 import { ipcRenderer } from "electron";
 import { Certification, Colors, HandleMessage, Ships } from "./bilibili";
-import GoTo from "vuetify/lib/services/goto";
 
 export default class Socket {
   static Command = {
@@ -117,12 +116,7 @@ export default class Socket {
         data.num;
       const price = (data.price * number) / 1000;
       const { url } = Socket.Gifts.find(({ id }) => data.giftId == id);
-      const gift = Socket.ComboGift[data.batch_combo_id];
       const message = `${data.giftName} - <img src="${url}" class="ml-2" width="40" height="40" /><span>×${number}</span><span class="ml-6">￥${price}</span>`;
-      if (gift) {
-        gift.message = message;
-        return;
-      }
       const result = {
         id: type + "-" + data.tid,
         title: data.uname,
@@ -133,11 +127,9 @@ export default class Socket {
         config: "gift",
         style: { message: { color: Colors.Gift } },
       };
-      Socket.ComboGift[data.batch_combo_id] = result;
       return result;
     },
   };
-  static ComboGift = {};
   static AutoUp = true;
   static AutoTranslate = localStorage.getItem("AutoTranslate") !== "false";
   static Parse = {
@@ -172,10 +164,8 @@ export default class Socket {
     },
   };
   static language = undefined;
-  static target = document.getElementById("comment");
   static Gifts = [];
   constructor(type, host) {
-    this.comments = [];
     this.socket = new WebSocket(host.host);
     this.socket.timer = null;
     this.type = type;
@@ -191,8 +181,6 @@ export default class Socket {
       Socket.ConnectLog(event, type);
     });
   }
-  static GoToBottom = () =>
-    GoTo(Socket.target.scrollHeight, { easing: "easeInOutCubic" });
   static ConnectLog = (event, platform) => {
     const text = JSON.stringify({
       trusted: event.isTrusted,
@@ -216,10 +204,7 @@ export default class Socket {
       const comment =
         Socket.Command[item.type] &&
         (await Socket.Command[item.type](item, this.uid));
-      if (comment) {
-        this.comments.push(comment);
-        Socket.AutoUp && Socket.GoToBottom();
-      }
+      comment && ipcRenderer.send("Comment", comment);
     }
   };
 }
