@@ -65,8 +65,6 @@ export const Youdao = axios.create({
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
-    Cookie:
-      "OUTFOX_SEARCH_USER_ID=498646259@10.110.96.153; OUTFOX_SEARCH_USER_ID_NCOO=518205455.63062",
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
   },

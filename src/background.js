@@ -14,7 +14,7 @@ import {
 } from "./plugins/axios";
 import { Log } from "./plugins/util";
 import md5 from "blueimp-md5";
-import { Baidu } from "./plugins/header";
+import { Baidu, Youdao } from "./plugins/header";
 import FontList from "font-list";
 import io from "./plugins/server";
 
@@ -37,7 +37,7 @@ const CreateWindow = async () => {
     titleBarStyle: "hidden",
     autoHideMenuBar: true,
     transparent: true,
-    titleBarOverlay: { color: "#ffffff00", symbolColor: "rgba(0, 0, 0, 0.54)" },
+    titleBarOverlay: { color: "#ffffff00", symbolColor: "#808080" },
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -128,15 +128,17 @@ ipcMain.handle("GetAvatar", async (event, uid) => {
   return avatar;
 });
 ipcMain.on("Log", (event, text) => Log(text));
-ipcMain.handle("GetAuthen", async (event, Cookie, token) => {
-  if (!Cookie || !token) {
+ipcMain.handle("GetAuthen", async (event, Cookie, token, G) => {
+  if (!Cookie || !token || !G) {
     const result = await GetAuthen();
     Cookie = result.Cookie;
     token = result.token;
+    G = result.G;
   }
   Baidu.defaults.headers.Cookie = Cookie;
+  Youdao.defaults.headers.Cookie = G;
   Translate.token = token;
-  return { Cookie, token };
+  return { Cookie, token, G };
 });
 ipcMain.handle("GetFont", async (event) => {
   const result = await FontList.getFonts();

@@ -1,59 +1,61 @@
 <template>
   <v-app>
     <v-system-bar app fixed height="30" />
-    <v-main class="my-3">
-      <v-card class="mb-3">
-        <v-card-title>
-          <v-tabs v-model="tab" centered>
-            <v-tab href="#Twitcasting">Twitcasting</v-tab>
-            <v-tab href="#Bilibili">Bilibili</v-tab>
-          </v-tabs>
-        </v-card-title>
-        <v-card-text>
-          <v-alert dense text v-show="hint" type="warning">
-            {{ hint }}
-          </v-alert>
-          <v-tabs-items class="pb-1" v-model="tab">
-            <v-tab-item value="Twitcasting">
-              <v-text-field
-                hide-details
-                v-model="Twitcasting"
-                label="ID"
-                prepend-icon="mdi-at"
-              />
-              <v-text-field
-                hide-details
-                v-model="key"
-                label="Key"
-                prepend-icon="mdi-key-wireless"
-              />
-            </v-tab-item>
-            <v-tab-item value="Bilibili">
-              <v-text-field
-                hide-details
-                v-model="Bilibili"
-                label="LiveID"
-                prepend-icon="mdi-video"
-              />
-            </v-tab-item>
-          </v-tabs-items>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn
-            text
-            :loading="loading"
-            color="primary"
-            :disabled="
-              (tab === 'Twitcasting' && !(Twitcasting && key)) ||
-              (tab === 'Bilibili' && !Bilibili)
-            "
-            @click="Link"
-          >
-            {{ $vuetify.lang.t("$vuetify.link") }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-      <ConfigSetting />
+    <v-main>
+      <v-container>
+        <v-card class="mb-3">
+          <v-card-title>
+            <v-tabs v-model="tab" centered>
+              <v-tab href="#Twitcasting">Twitcasting</v-tab>
+              <v-tab href="#Bilibili">Bilibili</v-tab>
+            </v-tabs>
+          </v-card-title>
+          <v-card-text>
+            <v-alert dense text v-show="hint" type="warning">
+              {{ hint }}
+            </v-alert>
+            <v-tabs-items class="pb-1" v-model="tab">
+              <v-tab-item value="Twitcasting">
+                <v-text-field
+                  hide-details
+                  v-model="Twitcasting"
+                  label="ID"
+                  prepend-icon="mdi-at"
+                />
+                <v-text-field
+                  hide-details
+                  v-model="key"
+                  label="Key"
+                  prepend-icon="mdi-key-wireless"
+                />
+              </v-tab-item>
+              <v-tab-item value="Bilibili">
+                <v-text-field
+                  hide-details
+                  v-model="Bilibili"
+                  label="LiveID"
+                  prepend-icon="mdi-video"
+                />
+              </v-tab-item>
+            </v-tabs-items>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn
+              text
+              :loading="loading"
+              color="primary"
+              :disabled="
+                (tab === 'Twitcasting' && !(Twitcasting && key)) ||
+                (tab === 'Bilibili' && !Bilibili)
+              "
+              @click="Link"
+            >
+              {{ $vuetify.lang.t("$vuetify.link") }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+        <ConfigSetting />
+      </v-container>
     </v-main>
   </v-app>
 </template>
@@ -79,9 +81,11 @@ export default {
   async created() {
     const Cookie = localStorage.getItem("Cookie");
     const token = localStorage.getItem("token");
-    const result = await ipcRenderer.invoke("GetAuthen", Cookie, token);
+    const G = localStorage.getItem("G");
+    const result = await ipcRenderer.invoke("GetAuthen", Cookie, token, G);
     localStorage.setItem("Cookie", result.Cookie);
     localStorage.setItem("token", result.token);
+    localStorage.setItem("G", result.G);
     shell.openExternal("http://localhost:9669/");
   },
   methods: {
@@ -130,6 +134,5 @@ export default {
   -webkit-app-region: drag;
   -webkit-user-drag: none;
   border-radius: 4px;
-  background-color: #fff;
 }
 </style>

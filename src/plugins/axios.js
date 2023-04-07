@@ -149,10 +149,15 @@ export const GetAvatar = async (uid) => {
 
 export const GetAuthen = async () => {
   try {
-    const { headers } = await axios.get("https://fanyi.baidu.com");
-    let Cookie = headers["set-cookie"]
-      .map((item) => item.split(";")[0])
-      .join("; ");
+    let [{ headers: Cookie }, { headers: G }] = await Promise.all([
+      axios.get("https://fanyi.baidu.com"),
+      axios.get("https://dict.youdao.com/login/acc/query/accountinfo"),
+    ]);
+    Cookie = Cookie["set-cookie"].map((item) => item.split(";")[0]).join("; ");
+    G = G["set-cookie"].map((item) => item.split(";")[0]).join("; ");
+    G += `; OUTFOX_SEARCH_USER_ID_NCOO=${
+      2147483647 * Math.random()
+    }; ___rl__test__cookies=${new Date().getTime()}`;
     const result = await axios.get("https://fanyi.baidu.com", {
       headers: { ...Baidu.defaults.headers, Cookie },
       withCredentials: true,
@@ -164,8 +169,8 @@ export const GetAuthen = async () => {
         .join(";");
     }
     const match = result.data.match(/token: ?'(.*)'/);
-    Log(`GetAuthen Success - Cookie:${Cookie} token:${match[1]}`);
-    return { Cookie, token: match[1] };
+    Log(`GetAuthen Success - Cookie:${Cookie} token:${match[1]} G:${G}`);
+    return { Cookie, token: match[1], G };
   } catch (error) {
     Log(`GetAuthen Error - ${JSON.stringify(error)}`);
   }
